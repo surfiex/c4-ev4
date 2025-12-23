@@ -1273,4 +1273,18 @@ FW_VERSIONS = {
       b'\xf1\x00T01G00BL  T01I00A1  DOS2T16X4XI00NS0\x99L\xeeq',
     ],
   },
+  CAR.KIA_EV4: {
+    (Ecu.eps, 0x7d4, None): [
+      b'\xf1\x00CT1 MDPS C 1.00 1.01 56300EZ000  2541_CT1kE_CAN101',
+    ],
+    (Ecu.fwdCamera, 0x7c4, None): [
+      b'\xf1\x00CT11.011.031.012551000HKP_CT125_50430099211EZ000',
+    ],
+    (Ecu.fwdRadar, 0x7d0, None): [
+      b'\xf1\x00CT1__               1.00 1.01 99110EZ000          ',
+    ],
+    (Ecu.hvac, 0x7b3, None): [
+      b"\xf1\x00CT1 EV97255-EZ010CONTROL ASS'Y-DATC  1.04.00_R2.0_24.08.01",
+    ],
+  },
 }

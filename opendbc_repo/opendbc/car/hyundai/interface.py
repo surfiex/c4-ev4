@@ -147,6 +147,19 @@ class CarInterface(CarInterfaceBase):
     if candidate == CAR.KIA_OPTIMA_G4_FL:
       ret.steerActuatorDelay = 0.2
 
+    if candidate == CAR.KIA_EV4:
+      ret.brand = "kia"
+      ret.flags |= HyundaiFlags.CANFD.value
+      ret.flags |= HyundaiFlags.EV.value
+      # HAD(HDA2) 사양이라면 아래 플래그가 필수입니다.
+      ret.flags |= HyundaiFlags.HDA2.value
+
+      # 제원 설정 (앞서 정리한 값들)
+      ret.mass = 1836.
+      ret.wheelbase = 2.7
+      ret.steerRatio = 13.0
+      ret.centerToFront = ret.wheelbase * 0.4
+
     # Dashcam cars are missing a test route, or otherwise need validation
     # TODO: Optima Hybrid 2017 uses a different SCC12 checksum
     if candidate in (CAR.KIA_OPTIMA_H,):
