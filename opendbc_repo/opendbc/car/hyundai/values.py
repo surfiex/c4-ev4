@@ -6,7 +6,7 @@ from opendbc.car import Bus, CarSpecs, DbcDict, PlatformConfig, Platforms, uds
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.structs import CarParams
 from opendbc.car.docs_definitions import CarHarness, CarDocs, CarParts
-from opendbc.car.fw_query_definitions import FwQueryConfig, Request, p16
+from opendbc.car.fw_query_definitions import FwQueryConfig, Request, StdQueries, p16
 
 Ecu = CarParams.Ecu
 
@@ -590,7 +590,8 @@ class CAR(Platforms):
       HyundaiCarDocs("Kia EV4 (with HDA II) 2025", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_p]))
     ],
     CarSpecs(mass=1836, wheelbase=2.7, steerRatio=12.64, tireStiffnessFactor=1.0),
-    flags=HyundaiFlags.EV,
+    dbc_dict={Bus.pt: "KIA_EV4_v19", 1: "KIA_EV4_v19"},
+    flags=HyundaiFlags.EV | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.CANFD_LKA_STEERING_ALT | HyundaiFlags.CANFD_ALT_BUTTONS,
   )
 
 
@@ -680,22 +681,51 @@ HYUNDAI_VERSION_REQUEST_ALT = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) 
 HYUNDAI_ECU_MANUFACTURING_DATE = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
   p16(uds.DATA_IDENTIFIER_TYPE.ECU_MANUFACTURING_DATE)
 
+HYUNDAI_VERSION_REQUEST_SW_VERSION = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf191)  # Software version description
+
+HYUNDAI_VERSION_REQUEST_SW_VERSION_ALT = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf181)  # Alt Software version description
+
+HYUNDAI_VERSION_REQUEST_DATA_ID = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf182)  # Data identifier description
+
+HYUNDAI_VERSION_REQUEST_BOOT_ID = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf17c)  # Boot identifier description
+
+HYUNDAI_VERSION_REQUEST_PART_NUMBER = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf188)  # Part number description
+
+HYUNDAI_VERSION_REQUEST_PART_NUMBER_ALT = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf187)  # Alt Part number description
+
+HYUNDAI_VERSION_REQUEST_SYSTEM_NAME = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf197)  # System name description
+
+HYUNDAI_VERSION_REQUEST_MOD_INFO = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0xf1b0)  # Module info description
+
+HYUNDAI_VERSION_REQUEST_PLATFORM_INFO = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(0x0100)  # Platform info description
+
+HYUNDAI_VIN_REQUEST = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(uds.DATA_IDENTIFIER_TYPE.VIN)
+
 HYUNDAI_VERSION_RESPONSE = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER + 0x40])
 
 # Regex patterns for parsing platform code, FW date, and part number from FW versions
-PLATFORM_CODE_FW_PATTERN = re.compile(b'((?<=' + HYUNDAI_VERSION_REQUEST_LONG[1:] +
-                                      b')[A-Z]{2}[A-Za-z0-9]{0,2})')
+PLATFORM_CODE_FW_PATTERN = re.compile(b'((?<=\x62\xf1[\x00\x10\x91\x88\x87\x97\x81\x82\x7c\x90\xb0]|\x62\x01\x00)[A-Z0-9 ]{2,12})')
 DATE_FW_PATTERN = re.compile(b'(?<=[ -])([0-9]{6}$)')
 PART_NUMBER_FW_PATTERN = re.compile(b'(?<=[0-9][.,][0-9]{2} )([0-9]{5}[-/]?[A-Z][A-Z0-9]{3}[0-9])')
 
 # We've seen both ICE and hybrid for these platforms, and they have hybrid descriptors (e.g. MQ4 vs MQ4H)
 CANFD_FUZZY_WHITELIST = {CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN, CAR.KIA_K8_HEV_1ST_GEN,
                          # TODO: the hybrid variant is not out yet
-                         CAR.KIA_CARNIVAL_4TH_GEN}
+                         CAR.KIA_CARNIVAL_4TH_GEN, CAR.KIA_EV4}
 
 # List of ECUs expected to have platform codes, camera and radar should exist on all cars
 # TODO: use abs, it has the platform code and part number on many platforms
-PLATFORM_CODE_ECUS = [Ecu.fwdRadar, Ecu.fwdCamera, Ecu.eps]
+PLATFORM_CODE_ECUS = [Ecu.fwdRadar, Ecu.fwdCamera, Ecu.eps, Ecu.abs, Ecu.transmission]
 # So far we've only seen dates in fwdCamera
 # TODO: there are date codes in the ABS firmware versions in hex
 DATE_FW_ECUS = [Ecu.fwdCamera]
@@ -752,6 +782,41 @@ FW_QUERY_CONFIG = FwQueryConfig(
       logging=True,
       obd_multiplexing=False,
     ),
+    # CAN & CAN-FD query to understand software version and part number
+    Request(
+      [HYUNDAI_VERSION_REQUEST_SW_VERSION, HYUNDAI_VERSION_REQUEST_PART_NUMBER],
+      [HYUNDAI_VERSION_RESPONSE, HYUNDAI_VERSION_RESPONSE],
+      bus=0,
+      auxiliary=True,
+      logging=True,
+    ),
+    Request(
+      [HYUNDAI_VERSION_REQUEST_SW_VERSION, HYUNDAI_VERSION_REQUEST_PART_NUMBER],
+      [HYUNDAI_VERSION_RESPONSE, HYUNDAI_VERSION_RESPONSE],
+      bus=1,
+      auxiliary=True,
+      logging=True,
+      obd_multiplexing=False,
+    ),
+    Request(
+      [StdQueries.EXTENDED_DIAGNOSTIC_REQUEST, HYUNDAI_VERSION_REQUEST_LONG, HYUNDAI_VERSION_REQUEST_ALT, HYUNDAI_VERSION_REQUEST_PART_NUMBER,
+       HYUNDAI_VERSION_REQUEST_SW_VERSION, HYUNDAI_VERSION_REQUEST_SW_VERSION_ALT, HYUNDAI_VERSION_REQUEST_DATA_ID, HYUNDAI_VERSION_REQUEST_BOOT_ID,
+       HYUNDAI_VERSION_REQUEST_SYSTEM_NAME, HYUNDAI_VERSION_REQUEST_MOD_INFO, HYUNDAI_VERSION_REQUEST_PLATFORM_INFO, HYUNDAI_VIN_REQUEST],
+      [b'\x50\x03', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62'],
+      bus=0,
+      auxiliary=True,
+      logging=True,
+    ),
+    Request(
+      [StdQueries.EXTENDED_DIAGNOSTIC_REQUEST, HYUNDAI_VERSION_REQUEST_LONG, HYUNDAI_VERSION_REQUEST_ALT, HYUNDAI_VERSION_REQUEST_PART_NUMBER,
+       HYUNDAI_VERSION_REQUEST_SW_VERSION, HYUNDAI_VERSION_REQUEST_SW_VERSION_ALT, HYUNDAI_VERSION_REQUEST_DATA_ID, HYUNDAI_VERSION_REQUEST_BOOT_ID,
+       HYUNDAI_VERSION_REQUEST_SYSTEM_NAME, HYUNDAI_VERSION_REQUEST_MOD_INFO, HYUNDAI_VERSION_REQUEST_PLATFORM_INFO, HYUNDAI_VIN_REQUEST],
+      [b'\x50\x03', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62', b'\x62'],
+      bus=1,
+      auxiliary=True,
+      logging=True,
+      obd_multiplexing=False,
+    ),
   ],
   # We lose these ECUs without the comma power on these cars.
   # Note that we still attempt to match with them when they are present
@@ -766,6 +831,12 @@ FW_QUERY_CONFIG = FwQueryConfig(
     (Ecu.hvac, 0x7b3, None),              # HVAC Control Assembly
     (Ecu.cornerRadar, 0x7b7, None),
     (Ecu.combinationMeter, 0x7c6, None),  # CAN FD Instrument cluster
+    (Ecu.gateway, 0x738, None),           # Observed responding
+    (Ecu.srs, 0x7bb, None),               # Observed responding
+    (Ecu.transmission, 0x7bf, None),      # Observed responding
+    (Ecu.abs, 0x7cc, None),                # Observed responding
+    (Ecu.body, 0x7ce, None),              # Observed responding
+    (Ecu.unknown, 0x7d8, None),           # Observed responding
   ],
   # Custom fuzzy fingerprinting function using platform codes, part numbers + FW dates:
   match_fw_to_car_fuzzy=match_fw_to_car_fuzzy,

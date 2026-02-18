@@ -24,7 +24,8 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
-    can_define = CANDefine(DBC[CP.carFingerprint][Bus.pt])
+    self.pt_bus = CanBus(CP).ECAN if CP.flags & HyundaiFlags.CANFD else Bus.pt
+    can_define = CANDefine(DBC[CP.carFingerprint][self.pt_bus])
 
     self.cruise_buttons: deque = deque([Buttons.NONE] * PREV_BUTTON_SAMPLES, maxlen=PREV_BUTTON_SAMPLES)
     self.main_buttons: deque = deque([Buttons.NONE] * PREV_BUTTON_SAMPLES, maxlen=PREV_BUTTON_SAMPLES)
@@ -205,7 +206,7 @@ class CarState(CarStateBase):
     return ret
 
   def update_canfd(self, can_parsers) -> structs.CarState:
-    cp = can_parsers[Bus.pt]
+    cp = can_parsers[self.pt_bus]
     cp_cam = can_parsers[Bus.cam]
 
     ret = structs.CarState()
@@ -221,7 +222,11 @@ class CarState(CarStateBase):
     ret.brakePressed = cp.vl["TCS"]["DriverBraking"] == 1
 
     ret.doorOpen = cp.vl["DOORS_SEATBELTS"]["DRIVER_DOOR"] == 1
-    ret.seatbeltUnlatched = cp.vl["DOORS_SEATBELTS"]["DRIVER_SEATBELT"] == 0
+    # EV4: seatbelt signal is inverted (0=latched, 1=unlatched)
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      ret.seatbeltUnlatched = cp.vl["DOORS_SEATBELTS"]["DRIVER_SEATBELT"] == 1
+    else:
+      ret.seatbeltUnlatched = cp.vl["DOORS_SEATBELTS"]["DRIVER_SEATBELT"] == 0
 
     gear = cp.vl[self.gear_msg_canfd]["GEAR"]
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(gear))
@@ -267,6 +272,25 @@ class CarState(CarStateBase):
       ret.cruiseState.speed = cp_cruise_info.vl["SCC_CONTROL"]["VSetDis"] * speed_factor
       self.cruise_info = copy.copy(cp_cruise_info.vl["SCC_CONTROL"])
 
+    # EV4 DEBUG: log cruise state values to file for driving analysis
+    if not hasattr(self, '_dbg_cnt'):
+      self._dbg_cnt = 0
+      self._dbg_f = open('/tmp/ev4_cruise_debug.log', 'w')
+      self._dbg_f.write("frame,ACCMode,VSetDis,Standstill,ACCEnable,ACC_REQ,CruiseBTN,MainBTN,available,enabled\n")
+    self._dbg_cnt += 1
+    if self._dbg_cnt % 50 == 0:  # ~2Hz logging
+      try:
+        scc = cp.vl.get("SCC_CONTROL", {})
+        tcs = cp.vl.get("TCS", {})
+        btn = cp.vl.get(self.cruise_btns_msg_canfd, {})
+        self._dbg_f.write(f"{self._dbg_cnt},{scc.get('ACCMode','-')},{scc.get('VSetDis','-')},{scc.get('CRUISE_STANDSTILL','-')},"
+                          f"{tcs.get('ACCEnable','-')},{tcs.get('ACC_REQ','-')},"
+                          f"{btn.get('CRUISE_BUTTONS','-')},{btn.get('ADAPTIVE_CRUISE_MAIN_BTN','-')},"
+                          f"{ret.cruiseState.available},{ret.cruiseState.enabled}\n")
+        self._dbg_f.flush()
+      except Exception:
+        pass
+
     # Manual Speed Limit Assist is a feature that replaces non-adaptive cruise control on EV CAN FD platforms.
     # It limits the vehicle speed, overridable by pressing the accelerator past a certain point.
     # The car will brake, but does not respect positive acceleration commands in this mode
@@ -280,12 +304,19 @@ class CarState(CarStateBase):
     self.cruise_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["CRUISE_BUTTONS"])
     self.main_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["ADAPTIVE_CRUISE_MAIN_BTN"])
     self.lda_button = cp.vl[self.cruise_btns_msg_canfd]["LDA_BTN"]
-    self.buttons_counter = cp.vl[self.cruise_btns_msg_canfd]["COUNTER"]
+    self.buttons_counter = cp.vl[self.cruise_btns_msg_canfd].get("COUNTER", 0)
     ret.accFaulted = cp.vl["TCS"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
 
     if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
       self.lfa_block_msg = copy.copy(cp_cam.vl["CAM_0x362"] if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT
                                           else cp_cam.vl["CAM_0x2a4"])
+
+    # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus
+    self.hda2_forward_msgs = {}
+    for addr in [905, 357, 896] + list(range(933, 965)):
+      msg_name = f"RADAR_TRACK_{addr}" if addr >= 933 else ("ADRV_0x389" if addr == 905 else ("ADRV_0x165" if addr == 357 else "ADRV_0x380"))
+      if msg_name in cp_cam.vl:
+        self.hda2_forward_msgs[msg_name] = copy.copy(cp_cam.vl[msg_name])
 
     ret.buttonEvents = [*create_button_events(self.cruise_buttons[-1], prev_cruise_buttons, BUTTONS_DICT),
                         *create_button_events(self.main_buttons[-1], prev_main_buttons, {1: ButtonType.mainCruise}),
@@ -296,16 +327,42 @@ class CarState(CarStateBase):
     return ret
 
   def get_can_parsers_canfd(self, CP):
-    msgs = []
+    msgs = [
+      ("ACCELERATOR", 100),
+      ("TCS", 100),
+      ("WHEEL_SPEEDS", 100),
+      ("STEERING_SENSORS", 100),
+      ("MDPS", 100),
+      ("CRUISE_BUTTONS_ALT", 50),
+      ("BLINDSPOTS_REAR_CORNERS", float('nan')),
+      ("SCC_CONTROL", 50),
+      ("MANUAL_SPEED_LIMIT_ASSIST", float('nan')),
+      # these messages are not present on the EV4 ECAN but are accessed by CarState
+      ("DOORS_SEATBELTS", float('nan')),
+      ("BLINKERS", float('nan')),
+    ]
     if not (CP.flags & HyundaiFlags.CANFD_ALT_BUTTONS):
       # TODO: this can be removed once we add dynamic support to vl_all
       msgs += [
         # this message is 50Hz but the ECU frequently stops transmitting for ~0.5s
-        ("CRUISE_BUTTONS", 1)
+        ("CRUISE_BUTTONS", 1),
       ]
+    pt_parser = CANParser(DBC[CP.carFingerprint][self.pt_bus], msgs, CanBus(CP).ECAN)
+
+    cam_msgs = [
+      ("CAM_0x362", float('nan')),
+      ("CAM_0x2a4", float('nan')),
+      ("ADRV_0x389", float('nan')),
+      ("ADRV_0x165", float('nan')),
+      ("ADRV_0x380", float('nan')),
+    ]
+    for addr in range(933, 965):
+      cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))
+
     return {
-      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], msgs, CanBus(CP).ECAN),
-      Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).CAM),
+      Bus.pt: pt_parser,
+      self.pt_bus: pt_parser,
+      Bus.cam: CANParser(DBC[CP.carFingerprint][self.pt_bus], cam_msgs, CanBus(CP).CAM),
     }
 
   def get_can_parsers(self, CP):
