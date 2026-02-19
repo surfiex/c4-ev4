@@ -12,6 +12,12 @@ from opendbc.car.subaru.values import CAR as SUBARU
 from opendbc.car.toyota.values import CAR as TOYOTA
 from opendbc.car.volkswagen.values import CAR as VW
 
+# DEBUG: Verify module load
+try:
+    with open("/data/openpilot/fingerprint_debug.log", "a") as f:
+        f.write(f"DEBUG: opendbc.car.fingerprints module loaded from {__file__}\n")
+except: pass
+
 FW_VERSIONS = get_interface_attr('FW_VERSIONS', combine_brands=True, ignore_none=True)
 _FINGERPRINTS = get_interface_attr('FINGERPRINTS', combine_brands=True, ignore_none=True)
 
