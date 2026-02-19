@@ -45,14 +45,15 @@ def main():
                 msgs = messaging.drain_sock(can_sock, wait_for_one=True)
                 for m in msgs:
                     for c in m.can:
-                        # Check if address is in our list OR log all if list is empty
-                        if c.address in LOG_IDS:
+                        # Log ALL messages on Bus 0 (Radar/Chassis) and Bus 1 (Camera/ECAN)
+                        # Bus 2 is filtered because it's usually huge (gateway) and less relevant for steering hacking
+                        if c.src in [0, 1]:
                             # Write to file
                             line = f"{m.logMonoTime},{c.src},{c.address},{c.dat.hex()}\n"
                             f.write(line)
                             count += 1
-                            if count % 10 == 0:
-                                f.flush() # Flush every 10 messages to be safe
+                            if count % 1000 == 0:
+                                f.flush() # Flush every 1000 messages for speed
 
         except Exception as e:
             print(f"\nError: {e}")
