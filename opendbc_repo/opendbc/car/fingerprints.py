@@ -15,7 +15,22 @@ from opendbc.car.volkswagen.values import CAR as VW
 FW_VERSIONS = get_interface_attr('FW_VERSIONS', combine_brands=True, ignore_none=True)
 _FINGERPRINTS = get_interface_attr('FINGERPRINTS', combine_brands=True, ignore_none=True)
 
-_DEBUG_ADDRESS = {1880: 8}   # reserved for debug purposes
+# reserved for debug purposes
+_DEBUG_ADDRESS = {
+  1880: 8,  # 0x758
+  1840: 8,  # 0x730
+  1848: 8,  # 0x738
+  1971: 8,  # 0x7B3
+  1975: 8,  # 0x7B7
+  1979: 8,  # 0x7BB
+  1983: 8,  # 0x7BF
+  1988: 8,  # 0x7C4
+  1990: 8,  # 0x7C6
+  1996: 8,  # 0x7CC
+  1998: 8,  # 0x7CE
+  2000: 8,  # 0x7D0
+  2008: 8,  # 0x7D8
+}
 
 
 def is_valid_for_fingerprint(msg, car_fingerprint: dict[int, int]):
