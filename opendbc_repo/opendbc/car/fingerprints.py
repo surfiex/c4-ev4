@@ -54,16 +54,28 @@ def is_valid_for_fingerprint(msg, car_fingerprint: dict[int, int]):
 
         # Check flat keys (Debug addresses) which are merged at the top level
         if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
+            if car_fingerprint[msg.address] != len(msg.dat):
+                print(f"DEBUG: Msg {msg.address} in bus {msg.src} matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}")
             return car_fingerprint[msg.address] == len(msg.dat)
 
-        return msg.address >= 0x800
+        if msg.address >= 0x800:
+            return True
+
+        print(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in Bus {msg.src} FP or Flat keys. Fail.")
+        return False
 
     # Check flat keys (Debug addresses) for non-bus match
     if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
+        if car_fingerprint[msg.address] != len(msg.dat):
+             print(f"DEBUG: Msg {msg.address} not in bus dict, matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}")
         return car_fingerprint[msg.address] == len(msg.dat)
 
     # If not found in either, fail (unless high address)
-    return msg.address >= 0x800
+    if msg.address >= 0x800:
+        return True
+
+    print(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in FP (Empty bus keys?). Fail.")
+    return False
 
   adr = msg.address
   # ignore addresses that are more than 11 bits
