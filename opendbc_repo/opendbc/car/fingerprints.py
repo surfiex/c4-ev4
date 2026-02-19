@@ -19,6 +19,30 @@ _DEBUG_ADDRESS = {1880: 8}   # reserved for debug purposes
 
 
 def is_valid_for_fingerprint(msg, car_fingerprint: dict[int, int]):
+  if isinstance(car_fingerprint, dict) and any(isinstance(v, dict) for v in car_fingerprint.values()):
+    # Check for bus-specific match if legacy check fails or if it's clearly a bus mapping
+    # Since we can't easily distinguish a "Legacy dict with int keys that happen to be 0/1/2" from a "Bus map",
+    # we rely on the check: if msg.src is in the keys, use that sub-dict.
+    # Note: _DEBUG_ADDRESS usually has keys 0x7xx.
+
+    # Try legacy/flat match first (for merged debug addresses or simple fingerprints)
+    # But wait, if car_fingerprint has {0: {...}, 1: {...}}, then `adr in car_fingerprint` only matches if adr is 0 or 1.
+    # So standard check fails for normal CAN IDs.
+
+    # Correct logic:
+    # 1. If msg.src is in keys, use the sub-dict.
+    # 2. If msg.address is in keys (e.g. debug address), allow it.
+    if msg.src in car_fingerprint and isinstance(car_fingerprint[msg.src], dict):
+        bus_fp = car_fingerprint[msg.src]
+        return (msg.address in bus_fp and bus_fp[msg.address] == len(msg.dat))
+
+    # Check flat keys (Debug addresses)
+    if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
+        return car_fingerprint[msg.address] == len(msg.dat)
+
+    # If not found in either, fail (unless high address)
+    return msg.address >= 0x800
+
   adr = msg.address
   # ignore addresses that are more than 11 bits
   return (adr in car_fingerprint and car_fingerprint[adr] == len(msg.dat)) or adr >= 0x800
