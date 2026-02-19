@@ -55,26 +55,26 @@ def is_valid_for_fingerprint(msg, car_fingerprint: dict[int, int]):
         # Check flat keys (Debug addresses) which are merged at the top level
         if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
             if car_fingerprint[msg.address] != len(msg.dat):
-                print(f"DEBUG: Msg {msg.address} in bus {msg.src} matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}")
+                print(f"DEBUG: Msg {msg.address} in bus {msg.src} matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}", flush=True)
             return car_fingerprint[msg.address] == len(msg.dat)
 
         if msg.address >= 0x800:
             return True
 
-        print(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in Bus {msg.src} FP or Flat keys. Fail.")
+        print(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in Bus {msg.src} FP or Flat keys. Fail.", flush=True)
         return False
 
     # Check flat keys (Debug addresses) for non-bus match
     if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
         if car_fingerprint[msg.address] != len(msg.dat):
-             print(f"DEBUG: Msg {msg.address} not in bus dict, matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}")
+             print(f"DEBUG: Msg {msg.address} not in bus dict, matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}", flush=True)
         return car_fingerprint[msg.address] == len(msg.dat)
 
     # If not found in either, fail (unless high address)
     if msg.address >= 0x800:
         return True
 
-    print(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in FP (Empty bus keys?). Fail.")
+    print(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in FP (Empty bus keys?). Fail.", flush=True)
     return False
 
   adr = msg.address
@@ -94,7 +94,14 @@ def eliminate_incompatible_cars(msg, candidate_cars):
   """
   compatible_cars = []
 
+  # DEBUG: Check if EV4 is even a candidate
+  if "KIA EV4" in str(candidate_cars) or len(candidate_cars) > 100:
+      print(f"DEBUG: Checking {len(candidate_cars)} candidates. EV4 present? {'KIA EV4 2025' in str(candidate_cars)}", flush=True)
+
   for car_name in candidate_cars:
+    if car_name == "KIA EV4 2025": # Use exact string if known, or just print all
+        print(f"DEBUG: Testing candidate {car_name}...", flush=True)
+
     car_fingerprints = _FINGERPRINTS[car_name]
 
     for fingerprint in car_fingerprints:
