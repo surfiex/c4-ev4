@@ -308,13 +308,15 @@ class CarState(CarStateBase):
     ret.accFaulted = cp.vl["TCS"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
 
     if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
-      self.lfa_block_msg = copy.copy(cp_cam.vl["CAM_0x362"] if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT
-                                          else cp_cam.vl["CAM_0x2a4"])
+      # EV4: Suppress CAM_0x16a (ID 362)
+      self.lfa_block_msg = copy.copy(cp_cam.vl["CAM_0x16a"])
 
     # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus
     self.hda2_forward_msgs = {}
-    for addr in [905, 357, 896] + list(range(933, 965)):
-      msg_name = f"RADAR_TRACK_{addr}" if addr >= 933 else ("ADRV_0x389" if addr == 905 else ("ADRV_0x165" if addr == 357 else "ADRV_0x380"))
+    # Forward 866 (LKAS_ALT_OLD/Status) as it's not the steering command we block
+    # Block 362 (CAM_0x16a) if steering
+    for addr in [905, 357, 896, 866, 362] + list(range(933, 965)):
+      msg_name = f"RADAR_TRACK_{addr}" if addr >= 933 else ("ADRV_0x389" if addr == 905 else ("ADRV_0x165" if addr == 357 else ("ADRV_0x380" if addr == 896 else ("CAM_0x16a" if addr == 362 else "LKAS_ALT_OLD"))))
       if msg_name in cp_cam.vl:
         self.hda2_forward_msgs[msg_name] = copy.copy(cp_cam.vl[msg_name])
 
@@ -350,6 +352,7 @@ class CarState(CarStateBase):
     pt_parser = CANParser(DBC[CP.carFingerprint][self.pt_bus], msgs, CanBus(CP).ECAN)
 
     cam_msgs = [
+      ("CAM_0x16a", float('nan')),
       ("CAM_0x362", float('nan')),
       ("CAM_0x2a4", float('nan')),
       ("ADRV_0x389", float('nan')),

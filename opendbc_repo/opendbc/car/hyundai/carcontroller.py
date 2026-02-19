@@ -221,11 +221,24 @@ class CarController(CarControllerBase):
     # HDA2 Forwarding: Forward saved messages from camera bus to car bus
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs.items():
+        # EV4: Block CAM_0x16a (362) from forwarding so we can replace it
+        if msg_name == "CAM_0x16a":
+          continue
+
         # Based on fingerprint, some belong to ECAN (Bus 1), others to ACAN (Bus 0)
-        # 905 (0x389), 357 (0x165), 896 (0x380) are on Bus 1
-        if any(x in msg_name for x in ["0x389", "0x165", "0x380"]):
+        # 905 (0x389), 357 (0x165), 896 (0x380), 362 (0x16a) are on Bus 1
+        if any(x in msg_name for x in ["0x389", "0x165", "0x380", "0x16a"]):
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
         else:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
+
+      # Suppress LFA by sending empty CAM_0x16a to ADAS ECU (on Bus 0? No, usually to Bus 0 via Panda interception)
+      # Wait, if we are tapping Camera (Bus 1), and ADAS ECU is on Bus 0.
+      # We receive 362 on Bus 1. We BLOCK it above.
+      # We must inject our FAKE 362 to Bus 0 (Vehicle CAN) so ADAS ECU receives it.
+      # hyundaicanfd.create_suppress_lfa sends to ACAN (Bus 0). Correct.
+      if self.frame % 2 == 0: # 50Hz
+          can_sends.append(hyundaicanfd.create_suppress_lfa(self.packer, self.CAN, CS.lfa_block_msg,
+                                                            self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT))
 
     return can_sends
