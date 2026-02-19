@@ -15,10 +15,71 @@ from opendbc.car.volkswagen.values import CAR as VW
 FW_VERSIONS = get_interface_attr('FW_VERSIONS', combine_brands=True, ignore_none=True)
 _FINGERPRINTS = get_interface_attr('FINGERPRINTS', combine_brands=True, ignore_none=True)
 
-_DEBUG_ADDRESS = {1880: 8}   # reserved for debug purposes
+# reserved for debug purposes
+_DEBUG_ADDRESS = {
+  1880: 8,  # 0x758
+  1840: 8,  # 0x730
+  1848: 8,  # 0x738
+  1971: 8,  # 0x7B3
+  1975: 8,  # 0x7B7
+  1979: 8,  # 0x7BB
+  1983: 8,  # 0x7BF
+  1988: 8,  # 0x7C4
+  1990: 8,  # 0x7C6
+  1996: 8,  # 0x7CC
+  1998: 8,  # 0x7CE
+  2000: 8,  # 0x7D0
+  2008: 8,  # 0x7D8
+}
 
 
 def is_valid_for_fingerprint(msg, car_fingerprint: dict[int, int]):
+  if isinstance(car_fingerprint, dict) and any(isinstance(v, dict) for v in car_fingerprint.values()):
+    # Correct logic:
+    # 1. If msg.src is in keys, use the sub-dict.
+    # 2. If msg.address is in keys (e.g. debug address), allow it.
+    if msg.src in car_fingerprint and isinstance(car_fingerprint[msg.src], dict):
+        bus_fp = car_fingerprint[msg.src]
+        if msg.address in bus_fp:
+            return bus_fp[msg.address] == len(msg.dat)
+
+        # Check flat keys (Debug addresses) which are merged at the top level
+        if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
+            if car_fingerprint[msg.address] != len(msg.dat):
+                try:
+                    with open("/data/openpilot/fingerprint_debug.log", "a") as f:
+                        f.write(f"DEBUG: Msg {msg.address} in bus {msg.src} matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}\n")
+                except: pass
+            return car_fingerprint[msg.address] == len(msg.dat)
+
+        if msg.address >= 0x800:
+            return True
+
+        try:
+            with open("/data/openpilot/fingerprint_debug.log", "a") as f:
+                f.write(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in Bus {msg.src} FP or Flat keys. Fail.\n")
+        except: pass
+        return False
+
+    # Check flat keys (Debug addresses) for non-bus match
+    if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
+        if car_fingerprint[msg.address] != len(msg.dat):
+             try:
+                 with open("/data/openpilot/fingerprint_debug.log", "a") as f:
+                     f.write(f"DEBUG: Msg {msg.address} not in bus dict, matches flat key but LEN MISMATCH. Exp {car_fingerprint[msg.address]}, Got {len(msg.dat)}\n")
+             except: pass
+        return car_fingerprint[msg.address] == len(msg.dat)
+
+    # If not found in either, fail (unless high address)
+    if msg.address >= 0x800:
+        return True
+
+    try:
+        with open("/data/openpilot/fingerprint_debug.log", "a") as f:
+            f.write(f"DEBUG: Msg {msg.address} on bus {msg.src} NOT FOUND in FP (Empty bus keys?). Fail.\n")
+    except: pass
+    return False
+
   adr = msg.address
   # ignore addresses that are more than 11 bits
   return (adr in car_fingerprint and car_fingerprint[adr] == len(msg.dat)) or adr >= 0x800
@@ -28,22 +89,35 @@ def eliminate_incompatible_cars(msg, candidate_cars):
   """Removes cars that could not have sent msg.
 
      Inputs:
-      msg: A cereal/log CanData message from the car.
-      candidate_cars: A list of cars to consider.
+       msg: A cereal/log CanData message from the car.
+       candidate_cars: A list of cars to consider.
 
      Returns:
-      A list containing the subset of candidate_cars that could have sent msg.
+       A list containing the subset of candidate_cars that could have sent msg.
   """
   compatible_cars = []
 
-  for car_name in candidate_cars:
-    car_fingerprints = _FINGERPRINTS[car_name]
+  # DEBUG: Write to file to bypass stdout buffering issues
+  try:
+      with open("/data/openpilot/fingerprint_debug.log", "a") as f:
+          if "KIA EV4" in str(candidate_cars) or len(candidate_cars) > 100:
+              f.write(f"DEBUGGING START: Checking {len(candidate_cars)} candidates. EV4 present? {'KIA EV4 2025' in str(candidate_cars)}\n")
 
-    for fingerprint in car_fingerprints:
-      # add alien debug address
-      if is_valid_for_fingerprint(msg, fingerprint | _DEBUG_ADDRESS):
-        compatible_cars.append(car_name)
-        break
+          for car_name in candidate_cars:
+            if car_name == "KIA EV4 2025": # Use exact string if known, or just print all
+                f.write(f"DEBUG: Testing candidate {car_name}...\n")
+
+            car_fingerprints = _FINGERPRINTS[car_name]
+
+            for fingerprint in car_fingerprints:
+              # add alien debug address
+              if is_valid_for_fingerprint(msg, fingerprint | _DEBUG_ADDRESS):
+                compatible_cars.append(car_name)
+                break
+              elif car_name == "KIA EV4 2025":
+                 f.write(f"DEBUG: Candidate {car_name} failed validation.\n")
+  except Exception as e:
+      pass # Safety first
 
   return compatible_cars
 
