@@ -36,9 +36,14 @@ def is_valid_for_fingerprint(msg, car_fingerprint: dict[int, int]):
         bus_fp = car_fingerprint[msg.src]
         if msg.address in bus_fp:
             return bus_fp[msg.address] == len(msg.dat)
+
+        # Check flat keys (Debug addresses) which are merged at the top level
+        if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
+            return car_fingerprint[msg.address] == len(msg.dat)
+
         return msg.address >= 0x800
 
-    # Check flat keys (Debug addresses)
+    # Check flat keys (Debug addresses) for non-bus match
     if msg.address in car_fingerprint and not isinstance(car_fingerprint[msg.address], dict):
         return car_fingerprint[msg.address] == len(msg.dat)
 
