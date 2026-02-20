@@ -128,7 +128,7 @@ def create_lfahda_cluster(packer, CAN, enabled):
   return packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
 
 
-def create_acc_control(packer, CAN, enabled, accel_last, accel, stopping, gas_override, set_speed, hud_control):
+def create_acc_control(packer, CAN, enabled, accel_last, accel, stopping, gas_override, set_speed, hud_control, frame):
   jerk = 5
   jn = jerk / 50
   if not enabled or gas_override:
@@ -155,6 +155,13 @@ def create_acc_control(packer, CAN, enabled, accel_last, accel, stopping, gas_ov
     "SET_ME_TMP_64": 0x64,
     "DISTANCE_SETTING": hud_control.leadDistanceBars,
   }
+
+  values["COUNTER"] = (frame // 2) % 256
+  values["CHECKSUM"] = 0
+
+  packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
+  dat = packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)[2]
+  values["CHECKSUM"] = hkg_can_fd_checksum(0x1a0, values, dat)
 
   return packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
 
