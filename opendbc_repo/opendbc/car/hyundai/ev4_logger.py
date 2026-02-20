@@ -91,6 +91,7 @@ def main():
             record = {
                 't': time.time(),
                 'src': msg.src,
+                'bus': msg.src,  # Openpilot CAN message 'src' maps to the Panda bus number (0 for E-CAN/PT, 1 for C-CAN/Camera, etc.)
                 'address': msg.address,
                 'data': msg.dat.hex()
             }
