@@ -275,10 +275,14 @@ class CarState(CarStateBase):
     # EV4 DEBUG: Comprehensive 10Hz logging for analysis
     if not hasattr(self, '_dbg_cnt'):
       self._dbg_cnt = 0
-      self._dbg_f = open('/data/openpilot/ev4_log.csv', 'w')
-      self._dbg_f.write("frame,vEgo,SteeringAngle,SteeringTorque,DriverTorque,AccelPedal,BrakePressed,ACCMode,VSetDis,CRUISE_STANDSTILL,ACCEnable,ACC_REQ,CruiseBTN,MainBTN,LFA_Icon,LKA_Mode,available,enabled\n")
+      try:
+        self._dbg_f = open('/tmp/ev4_log.csv', 'w')
+        self._dbg_f.write("frame,vEgo,SteeringAngle,SteeringTorque,DriverTorque,AccelPedal,BrakePressed,ACCMode,VSetDis,CRUISE_STANDSTILL,ACCEnable,ACC_REQ,CruiseBTN,MainBTN,LFA_Icon,LKA_Mode,available,enabled\n")
+      except Exception as e:
+        print(f"EV4 LOGGING ERROR: Could not open file: {e}")
+        self._dbg_f = None
     self._dbg_cnt += 1
-    if self._dbg_cnt % 10 == 0:  # 10Hz logging (100Hz / 10)
+    if self._dbg_cnt % 10 == 0 and self._dbg_f:  # 10Hz logging
       try:
         scc = cp.vl.get("SCC_CONTROL", {})
         tcs = cp.vl.get("TCS", {})
@@ -294,7 +298,8 @@ class CarState(CarStateBase):
                           f"{lfa.get('LKA_ICON','-')},{lfa.get('LKA_MODE','-')},"
                           f"{ret.cruiseState.available},{ret.cruiseState.enabled}\n")
         self._dbg_f.flush()
-      except Exception:
+      except Exception as e:
+        print(f"EV4 LOGGING ERROR: {e}")
         pass
 
     # Manual Speed Limit Assist is a feature that replaces non-adaptive cruise control on EV CAN FD platforms.
@@ -344,6 +349,7 @@ class CarState(CarStateBase):
       ("CRUISE_BUTTONS_ALT", 50),
       ("BLINDSPOTS_REAR_CORNERS", float('nan')),
       ("SCC_CONTROL", 50),
+      ("LKAS_ALT", 100),
       ("MANUAL_SPEED_LIMIT_ASSIST", float('nan')),
       # these messages are not present on the EV4 ECAN but are accessed by CarState
       ("DOORS_SEATBELTS", float('nan')),
