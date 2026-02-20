@@ -4,17 +4,19 @@ import csv
 import os
 import cereal.messaging as messaging
 from openpilot.common.realtime import Ratekeeper
+import json
 
 def main():
-  sm = messaging.SubMaster(['carState', 'carControl'])
+  sm = messaging.SubMaster(['carState', 'carControl', 'can'])
 
   log_path = '/tmp/ev4_drive_log.csv'
-  print(f"EV4 Logger started. Saving to {log_path}...")
+  raw_log_path = '/tmp/ev4_raw_can.jsonl'
+  print(f"EV4 Logger started.\n - State log: {log_path}\n - Raw CAN log: {raw_log_path}")
   print("Press Ctrl+C to stop logging.")
 
   try:
-    with open(log_path, 'w', newline='') as f:
-      writer = csv.writer(f)
+    with open(log_path, 'w', newline='') as f_csv, open(raw_log_path, 'w') as f_raw:
+      writer = csv.writer(f_csv)
       writer.writerow([
         'time',
         'v_ego_raw',
@@ -31,7 +33,7 @@ def main():
       ])
 
       while True:
-        # Blocking update, wait for the next carState message (usually comes in at 100Hz)
+        # Blocking update, wait for messages
         sm.update()
 
         if sm.updated['carState']:
@@ -77,10 +79,22 @@ def main():
           ])
 
           if sm.frame % 100 == 0:
-            f.flush()
+            f_csv.flush()
+            f_raw.flush()
 
           if sm.frame % 100 == 0:
-            print(f"[{sm.frame}] Speed:{v_ego_raw*3.6:.1f} km/h | AccEn:{cruise_enabled} | Steer:{driver_steer} | Size:{os.path.getsize(log_path)/1024:.1f} KB", end='\r', flush=True)
+            print(f"[{sm.frame}] Speed:{v_ego_raw*3.6:.1f} km/h | AccEn:{cruise_enabled} | Steer:{driver_steer} | CS:{os.path.getsize(log_path)/1024:.0f}KB | CAN:{os.path.getsize(raw_log_path)/1024/1024:.1f}MB", end='\r', flush=True)
+
+        if sm.updated['can']:
+          for msg in sm['can']:
+            # Log all raw CAN messages in JSONL format for future DBC analysis
+            record = {
+                't': time.time(),
+                'src': msg.src,
+                'address': msg.address,
+                'data': msg.dat.hex()
+            }
+            f_raw.write(json.dumps(record) + "\n")
 
   except KeyboardInterrupt:
     print("\nLogging stopped by user.")
