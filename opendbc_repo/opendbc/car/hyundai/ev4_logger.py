@@ -89,7 +89,10 @@ def main():
 
           # Print status to console every 1 second (20 frames)
           if sm.frame % 20 == 0:
-            print(f"LOGGING: Speed={v_ego:.1f} m/s | Angle={angle:.1f} deg | ACC={acc_enabled} | Size={os.path.getsize(log_path)/1024:.1f} KB", end='\r')
+            print(f"LOGGING: Speed={v_ego:.1f} m/s | Angle={angle:.1f} deg | ACC={acc_enabled} | Size={os.path.getsize(log_path)/1024:.1f} KB          ", end='\r', flush=True)
+
+        elif sm.frame % 20 == 0:
+            print(f"WAITING for Openpilot data... (frame {sm.frame})                                      ", end='\r', flush=True)
 
         rk.keep_time()
 
