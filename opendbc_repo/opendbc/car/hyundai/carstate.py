@@ -272,20 +272,26 @@ class CarState(CarStateBase):
       ret.cruiseState.speed = cp_cruise_info.vl["SCC_CONTROL"]["VSetDis"] * speed_factor
       self.cruise_info = copy.copy(cp_cruise_info.vl["SCC_CONTROL"])
 
-    # EV4 DEBUG: log cruise state values to file for driving analysis
+    # EV4 DEBUG: Comprehensive 10Hz logging for analysis
     if not hasattr(self, '_dbg_cnt'):
       self._dbg_cnt = 0
-      self._dbg_f = open('/tmp/ev4_cruise_debug.log', 'w')
-      self._dbg_f.write("frame,ACCMode,VSetDis,Standstill,ACCEnable,ACC_REQ,CruiseBTN,MainBTN,available,enabled\n")
+      self._dbg_f = open('/data/openpilot/ev4_log.csv', 'w')
+      self._dbg_f.write("frame,vEgo,SteeringAngle,SteeringTorque,DriverTorque,AccelPedal,BrakePressed,ACCMode,VSetDis,CRUISE_STANDSTILL,ACCEnable,ACC_REQ,CruiseBTN,MainBTN,LFA_Icon,LKA_Mode,available,enabled\n")
     self._dbg_cnt += 1
-    if self._dbg_cnt % 50 == 0:  # ~2Hz logging
+    if self._dbg_cnt % 10 == 0:  # 10Hz logging (100Hz / 10)
       try:
         scc = cp.vl.get("SCC_CONTROL", {})
         tcs = cp.vl.get("TCS", {})
         btn = cp.vl.get(self.cruise_btns_msg_canfd, {})
-        self._dbg_f.write(f"{self._dbg_cnt},{scc.get('ACCMode','-')},{scc.get('VSetDis','-')},{scc.get('CRUISE_STANDSTILL','-')},"
+        lfa = cp_cam.vl.get("LKAS_ALT", {})
+        mdps = cp.vl.get("MDPS", {})
+        # Use ret values for standardized signals
+        self._dbg_f.write(f"{self._dbg_cnt},{ret.vEgo:.2f},{ret.steeringAngleDeg:.2f},{ret.steeringTorque:.2f},{ret.steeringTorqueEps:.2f},"
+                          f"{ret.gasPressed},{ret.brakePressed},"
+                          f"{scc.get('ACCMode','-')},{scc.get('VSetDis','-')},{scc.get('CRUISE_STANDSTILL','-')},"
                           f"{tcs.get('ACCEnable','-')},{tcs.get('ACC_REQ','-')},"
                           f"{btn.get('CRUISE_BUTTONS','-')},{btn.get('ADAPTIVE_CRUISE_MAIN_BTN','-')},"
+                          f"{lfa.get('LKA_ICON','-')},{lfa.get('LKA_MODE','-')},"
                           f"{ret.cruiseState.available},{ret.cruiseState.enabled}\n")
         self._dbg_f.flush()
       except Exception:
