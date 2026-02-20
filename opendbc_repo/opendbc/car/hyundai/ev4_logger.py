@@ -30,10 +30,9 @@ def main():
         'driver_steering_pressed'
       ])
 
-      rk = Ratekeeper(20)
-
       while True:
-        sm.update(0) # Non-blocking update to ensuring we drain the queue
+        # Blocking update, wait for the next carState message (usually comes in at 100Hz)
+        sm.update()
 
         if sm.updated['carState']:
           cs = sm['carState']
@@ -80,10 +79,8 @@ def main():
           if sm.frame % 100 == 0:
             f.flush()
 
-          if sm.frame % 20 == 0:
+          if sm.frame % 100 == 0:
             print(f"[{sm.frame}] Speed:{v_ego_raw*3.6:.1f} km/h | AccEn:{cruise_enabled} | Steer:{driver_steer} | Size:{os.path.getsize(log_path)/1024:.1f} KB", end='\r', flush=True)
-
-        rk.keep_time()
 
   except KeyboardInterrupt:
     print("\nLogging stopped by user.")
