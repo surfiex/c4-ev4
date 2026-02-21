@@ -1,91 +1,79 @@
-#!/usr/bin/env python3
 import sys
-import os
+import csv
 
-def analyze_log(log_file):
-    print(f"Analyzing {log_file}...")
+def analyze(filename):
+    print(f"Loading {filename}...")
 
-    # Trackers
-    msgs = {}
+    times = []
+    v_ego = []
+    steering_angle = []
+    t_driver = []
+    t_actuator = []
+    gas_pressed = []
+    brake_pressed = []
+    acc_enabled = []
+    lka_active = []
 
-    # Steering candidates
-    candidates = [866, 272, 362]
+    with open(filename, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            times.append(float(row['time']))
+            v_ego.append(float(row.get('v_ego_raw', row.get('v_ego', 0))))
+            steering_angle.append(float(row['steering_angle']))
+            t_driver.append(float(row['t_driver']))
+            t_actuator.append(float(row['t_actuator']))
+            gas_pressed.append(str(row['gas_pressed']).lower() == 'true')
+            brake_pressed.append(str(row['brake_pressed']).lower() == 'true')
+            acc_enabled.append(str(row.get('cruise_enabled', row.get('acc_enabled', 'false'))).lower() == 'true')
+            lka_active.append(str(row.get('lda_button', row.get('lka_active', '0'))) != '0' and str(row.get('lda_button', '0')) != 'False')
 
-    line_count = 0
-    start_time = None
-    last_time = None
-
-    try:
-        with open(log_file, 'r') as f:
-            header = f.readline() # Skip header
-
-            for line in f:
-                line_count += 1
-                parts = line.strip().split(',')
-                if len(parts) < 4:
-                    continue
-
-                t = float(parts[0])
-                if start_time is None: start_time = t
-                last_time = t
-
-                bus = int(parts[1])
-                addr = int(parts[2])
-                data = parts[3]
-
-                key = (bus, addr)
-                if key not in msgs:
-                    msgs[key] = {'count': 0, 'data': set(), 'last_data': data}
-
-                msgs[key]['count'] += 1
-                msgs[key]['last_data'] = data
-                if len(msgs[key]['data']) < 5: # Keep first few unique values
-                    msgs[key]['data'].add(data)
-
-    except FileNotFoundError:
-        print("Log file not found.")
+    if not times:
+        print("Empty log file.")
         return
 
-    duration = last_time - start_time
-    print(f"Duration: {duration:.2f}s, Total Messages: {line_count}")
-    print("="*60)
-    print(f"{'Bus':<4} {'ID (Dec)':<10} {'ID (Hex)':<10} {'Freq (Hz)':<10} {'Count':<10} {'Last Data'}")
-    print("-" * 60)
+    time_rel = [t - times[0] for t in times]
+    max_time = time_rel[-1]
 
-    # Sort by ID
-    for key in sorted(msgs.keys()):
-        bus, addr = key
-        count = msgs[key]['count']
-        freq = count / duration
-        last_d = msgs[key]['last_data']
+    stats = []
+    stats.append("=== EV4 Drive Log Statistics ===")
+    stats.append(f"Total Log Time: {max_time:.2f} seconds")
+    freq = len(times) / max_time if max_time > 0 else 0
+    stats.append(f"Total Data Points: {len(times)} (approx {freq:.1f} Hz)")
 
-        # Highlight our candidates
-        prefix = ">> " if addr in candidates else "   "
+    avg_speed = sum(v_ego) / len(v_ego) * 3.6
+    max_speed = max(v_ego) * 3.6
+    stats.append(f"Average Speed: {avg_speed:.2f} km/h")
+    stats.append(f"Max Speed: {max_speed:.2f} km/h")
 
-        # Filter: Only show candidates or high-frequency bus 1 (likely steering)
-        # OR just show everything if not too many?
-        # Let's show candidates + anything on Bus 0/1 that looks like LKA (around 50hz or 100hz)
+    stats.append(f"Steering Angle Range: {min(steering_angle):.2f}\u00b0 to {max(steering_angle):.2f}\u00b0")
+    stats.append(f"Driver Torque Range: {min(t_driver):.2f} to {max(t_driver):.2f}")
+    stats.append(f"Actuator Torque Range: {min(t_actuator):.2f} to {max(t_actuator):.2f}")
 
-        show = addr in candidates
-        show |= (freq > 40 and freq < 110) # 50Hz or 100Hz messages
+    # Calculate durations
+    acc_duration = 0
+    lka_duration = 0
+    gas_duration = 0
+    brake_duration = 0
 
-        if show:
-            print(f"{prefix}{bus:<4} {addr:<10} {hex(addr):<10} {freq:<10.2f} {count:<10} {last_d}")
-            if addr in candidates:
-                print(f"      Unique Data Samples: {list(msgs[key]['data'])[:5]}")
+    for i in range(1, len(times)):
+        dt = times[i] - times[i-1]
+        if acc_enabled[i]: acc_duration += dt
+        if lka_active[i]: lka_duration += dt
+        if gas_pressed[i]: gas_duration += dt
+        if brake_pressed[i]: brake_duration += dt
 
-    print("="*60)
-    print("Analysis Complete.")
+    stats.append(f"ACC Enabled Duration: {acc_duration:.2f} seconds ({acc_duration/max_time*100:.1f}%)")
+    stats.append(f"LKA Active Duration: {lka_duration:.2f} seconds ({lka_duration/max_time*100:.1f}%)")
+    stats.append(f"Gas Pedal Pressed: {gas_duration:.2f} seconds")
+    stats.append(f"Brake Pedal Pressed: {brake_duration:.2f} seconds")
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        # Auto-find latest csv
-        files = [f for f in os.listdir('/data') if f.startswith('ev4_log_') and f.endswith('.csv')]
-        if not files:
-            print("No log files found in /data. Usage: python3 analyze_ev4_log.py <logfile>")
-            sys.exit(1)
-        # Sort by mtime
-        latest_file = max([os.path.join('/data', f) for f in files], key=os.path.getmtime)
-        analyze_log(latest_file)
-    else:
-        analyze_log(sys.argv[1])
+    stats_str = '\n'.join(stats)
+
+    with open('log_analysis_report.txt', 'w', encoding='utf-8') as f:
+        f.write(stats_str)
+
+    print(stats_str)
+
+if __name__ == '__main__':
+    filename = sys.argv[1] if len(sys.argv) > 1 else 'ev4_drive_log.csv'
+    analyze(filename)
