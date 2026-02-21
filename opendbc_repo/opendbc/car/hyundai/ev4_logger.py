@@ -78,13 +78,6 @@ def main():
             driver_steer
           ])
 
-          if sm.frame % 100 == 0:
-            f_csv.flush()
-            f_raw.flush()
-
-          if sm.frame % 100 == 0:
-            print(f"[{sm.frame}] Speed:{v_ego_raw*3.6:.1f} km/h | AccEn:{cruise_enabled} | Steer:{driver_steer} | CS:{os.path.getsize(log_path)/1024:.0f}KB | CAN:{os.path.getsize(raw_log_path)/1024/1024:.1f}MB", end='\r', flush=True)
-
         if sm.updated['can']:
           for msg in sm['can']:
             # Log all raw CAN messages in JSONL format for future DBC analysis
@@ -96,6 +89,15 @@ def main():
                 'data': msg.dat.hex()
             }
             f_raw.write(json.dumps(record) + "\n")
+
+        # Flush periodically based on the fast-updating 'can' frame
+        if sm.frame % 100 == 0:
+          f_csv.flush()
+          f_raw.flush()
+
+          # Only print if we have at least seen one carState to avoid NameErrors
+          if 'v_ego_raw' in locals():
+            print(f"[{sm.frame}] Speed:{v_ego_raw*3.6:.1f} km/h | AccEn:{cruise_enabled} | Steer:{driver_steer} | CS:{os.path.getsize(log_path)/1024:.0f}KB | CAN:{os.path.getsize(raw_log_path)/1024/1024:.1f}MB", end='\r', flush=True)
 
   except KeyboardInterrupt:
     print("\nLogging stopped by user.")
