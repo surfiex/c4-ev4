@@ -9,8 +9,8 @@ import json
 def main():
   sm = messaging.SubMaster(['carState', 'carControl', 'can'])
 
-  log_path = '/tmp/ev4_drive_log.csv'
-  raw_log_path = '/tmp/ev4_raw_can.jsonl'
+  log_path = '/data/media/0/ev4_drive_log.csv'
+  raw_log_path = '/data/media/0/ev4_raw_can.jsonl'
   print(f"EV4 Logger started.\n - State log: {log_path}\n - Raw CAN log: {raw_log_path}")
   print("Press Ctrl+C to stop logging.")
 
