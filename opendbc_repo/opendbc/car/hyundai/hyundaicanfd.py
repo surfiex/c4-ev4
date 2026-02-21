@@ -69,11 +69,13 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque)
 
 def create_suppress_lfa(packer, CAN, lfa_block_msg, lka_steering_alt):
   suppress_msg = "CAM_0x16a"
-  msg_bytes = 32
 
   values = {f"BYTE{i}": 0 for i in range(3, 32)}
   values["COUNTER"] = lfa_block_msg["COUNTER"]
-  values["CHECKSUM"] = lfa_block_msg["CHECKSUM"]
+  values["CHECKSUM"] = 0
+
+  dat = packer.make_can_msg(suppress_msg, CAN.ACAN, values)[2]
+  values["CHECKSUM"] = hkg_can_fd_checksum(0x16a, values, dat)
 
   return packer.make_can_msg(suppress_msg, CAN.ACAN, values)
 
