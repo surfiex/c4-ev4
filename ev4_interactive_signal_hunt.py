@@ -2,7 +2,6 @@
 import os
 import time
 import json
-import curses
 from collections import defaultdict
 
 try:
@@ -32,7 +31,7 @@ ACTIONS = [
 
 def main():
     print("==================================================")
-    print("      EV4 Interactive Signal Hunter v1.0         ")
+    print("      EV4 Interactive Signal Hunter v1.1         ")
     print("==================================================")
     print("\n[목적] 안내에 따라 특정 행동을 수행하여,")
     print("누락된 신호(기어, 도어, 깜빡이 등)의 정확한 위치를 찾습니다.\n")
@@ -43,11 +42,9 @@ def main():
     print(f"로그 저장 위치: {output_file}")
     input("\n👉 시작하려면 차량의 시동을 'IG ON' 상태로 두고 엔터를 누르세요...")
 
-    context = zmq.Context()
     sm = messaging.SubMaster(['can'])
-
-    log_data = []
     start_time = time.time()
+    total_msgs = 0
 
     print("\n[테스트 시작! 안내에 따라 행동해주세요]")
 
@@ -60,11 +57,13 @@ def main():
                 # Mark the event in the log
                 event_mark = {"event": action_id, "time": round(action_start, 3)}
                 f.write(json.dumps(event_mark) + '\n')
+                f.flush()
 
                 # Collect data for the duration
                 end_tick = time.time() + duration
+                action_msgs = 0
                 while time.time() < end_tick:
-                    sm.update(10)
+                    sm.update(100) # Wait up to 100ms for messages
                     if sm.updated['can']:
                         curr = time.time() - start_time
                         for msg in sm['can']:
@@ -76,15 +75,23 @@ def main():
                                     "data": msg.dat.hex()
                                 }
                                 f.write(json.dumps(log_entry) + '\n')
-                    time.sleep(0.01)
+                                action_msgs += 1
+                                total_msgs += 1
 
-                print(f"✅ 완료 ({duration}초 경과)")
+                    if action_msgs == 0 and (time.time() - (end_tick - duration)) > 2.0:
+                        print("⚠️ 경고: CAN 메시지가 수집되지 않고 있습니다! 연결을 확인하세요.", end='\r')
+
+                print(f"✅ 완료 ({duration}초 경과, {action_msgs}개 메시지 수집됨)")
+                f.flush()
 
     except KeyboardInterrupt:
         print("\n\n🛑 사용자에 의해 중단되었습니다.")
 
-    print(f"\n🎉 모든 테스트 완료!")
-    print(f"파일을 PC로 복사하세요: {output_file}")
+    print(f"\n🎉 모든 테스트 완료! 총 {total_msgs}개 메시지 수집.")
+    if total_msgs == 0:
+        print("❌ 오류: 수집된 CAN 메시지가 없습니다. 스크립트를 다시 실행하거나 하이브리드 연결을 확인하세요.")
+    else:
+        print(f"파일을 PC로 복사하세요: {output_file}")
     print("\n다음 단계: python3 analyze_signal_hunt.py " + log_filename)
 
 if __name__ == "__main__":
