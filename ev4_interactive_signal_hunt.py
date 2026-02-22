@@ -31,7 +31,7 @@ ACTIONS = [
 
 def main():
     print("==================================================")
-    print("      EV4 Interactive Signal Hunter v1.1         ")
+    print("      EV4 Interactive Signal Hunter v1.2         ")
     print("==================================================")
     print("\n[목적] 안내에 따라 특정 행동을 수행하여,")
     print("누락된 신호(기어, 도어, 깜빡이 등)의 정확한 위치를 찾습니다.\n")
@@ -67,21 +67,23 @@ def main():
                     if sm.updated['can']:
                         curr = time.time() - start_time
                         for msg in sm['can']:
-                            if msg.src in [0, 1]: # Focus on main buses
-                                log_entry = {
-                                    "time": round(curr, 3),
-                                    "bus": msg.src,
-                                    "address": msg.address,
-                                    "data": msg.dat.hex()
-                                }
-                                f.write(json.dumps(log_entry) + '\n')
-                                action_msgs += 1
-                                total_msgs += 1
+                            # Log all buses (some HDA2 data is on bus 2)
+                            log_entry = {
+                                "time": round(curr, 3),
+                                "bus": msg.src,
+                                "address": msg.address,
+                                "data": msg.dat.hex()
+                            }
+                            f.write(json.dumps(log_entry) + '\n')
+                            action_msgs += 1
+                            total_msgs += 1
 
-                    if action_msgs == 0 and (time.time() - (end_tick - duration)) > 2.0:
-                        print("⚠️ 경고: CAN 메시지가 수집되지 않고 있습니다! 연결을 확인하세요.", end='\r')
+                    if action_msgs > 0:
+                        print(f"  수집 중... {action_msgs}개 메시지 수신됨", end='\r')
+                    elif (time.time() - (end_tick - duration)) > 2.0:
+                        print("⚠️ 경고: CAN 메시지가 수집되지 않고 있습니다!", end='\r')
 
-                print(f"✅ 완료 ({duration}초 경과, {action_msgs}개 메시지 수집됨)")
+                print(f"\n✅ 완료 ({duration}초 경과, {action_msgs}개 메시지 수집됨)")
                 f.flush()
 
     except KeyboardInterrupt:
@@ -89,7 +91,7 @@ def main():
 
     print(f"\n🎉 모든 테스트 완료! 총 {total_msgs}개 메시지 수집.")
     if total_msgs == 0:
-        print("❌ 오류: 수집된 CAN 메시지가 없습니다. 스크립트를 다시 실행하거나 하이브리드 연결을 확인하세요.")
+        print("❌ 오류: 수집된 CAN 메시지가 없습니다. 하드웨어 연결을 확인하세요.")
     else:
         print(f"파일을 PC로 복사하세요: {output_file}")
     print("\n다음 단계: python3 analyze_signal_hunt.py " + log_filename)
