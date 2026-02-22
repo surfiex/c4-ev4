@@ -328,7 +328,7 @@ class CarState(CarStateBase):
       msgs += [
         ("EV4_BODY_1", float('nan')),
         ("EV4_BODY_2", float('nan')),
-        ("EV4_BODY_3", float('nan')),
+        ("RADAR_TRACK_939", float('nan')),
       ]
     else:
       # these messages are not present on the EV4 ECAN but are accessed by CarState
