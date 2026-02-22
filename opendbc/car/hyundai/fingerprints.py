@@ -1304,5 +1304,3 @@ FW_VERSIONS = {
     ],
   },
 }
-
-# All legacy FINGERPRINTS have been replaced by FW fingerprinting.
