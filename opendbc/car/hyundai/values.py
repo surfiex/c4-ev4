@@ -590,7 +590,7 @@ class CAR(Platforms):
       HyundaiCarDocs("Kia EV4 (with HDA II) 2025", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_p]))
     ],
     CarSpecs(mass=1836, wheelbase=2.7, steerRatio=12.64, tireStiffnessFactor=1.0),
-    dbc_dict={Bus.pt: "KIA_EV4_v19", 1: "KIA_EV4_v19", Bus.radar: "KIA_EV4_v19"},
+    dbc_dict={Bus.pt: "KIA_EV4_v19", 1: "KIA_EV4_v19"},
     flags=HyundaiFlags.EV | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.CANFD_LKA_STEERING_ALT | HyundaiFlags.CANFD_ALT_BUTTONS,
   )
 
