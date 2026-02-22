@@ -1305,8 +1305,4 @@ FW_VERSIONS = {
   },
 }
 
-# Manually injected CAN fingerprints for robust detection
-FINGERPRINTS = {
-  # KIA_EV4 was removed since it now uses FW fingerprinting
-}
-
+# All legacy FINGERPRINTS have been replaced by FW fingerprinting.
