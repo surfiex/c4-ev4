@@ -780,9 +780,8 @@ BO_ 736 MANUAL_SPEED_LIMIT_ASSIST: 32 Vector__XXX
  SG_ MSLA_ENABLED : 38|1@1+ (1,0) [0|1] "" Vector__XXX
 
 BO_ 676 CAM_0x2a4: 24 XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM : 8|16@1+ (1,0) [0|65535] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
@@ -806,13 +805,12 @@ BO_ 676 CAM_0x2a4: 24 XXX
  SG_ BYTE23 : 184|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 866 CAM_0x362: 32 CAMERA
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM : 8|16@1+ (1,0) [0|65535] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
+   SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
+   SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
+   SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
  SG_ LEFT_LANE_LINE : 56|2@1+ (1,0) [0|3] "" XXX
  SG_ SET_ME_0 : 58|2@1+ (1,0) [0|3] "" XXX
  SG_ RIGHT_LANE_LINE : 60|2@1+ (1,0) [0|3] "" XXX
