@@ -494,8 +494,7 @@ BO_ 937 message_937: 8 Vector__XXX
 BO_ 938 message_938: 8 Vector__XXX
  SG_ Signal_938 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 939 message_939: 8 Vector__XXX
- SG_ Signal_939 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
 
 BO_ 940 message_940: 8 Vector__XXX
  SG_ Signal_940 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -572,8 +571,7 @@ BO_ 964 message_964: 8 Vector__XXX
 BO_ 975 message_975: 8 Vector__XXX
  SG_ Signal_975 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 976 message_976: 8 Vector__XXX
- SG_ Signal_976 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
 
 BO_ 977 message_977: 8 Vector__XXX
  SG_ Signal_977 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -581,8 +579,7 @@ BO_ 977 message_977: 8 Vector__XXX
 BO_ 978 message_978: 8 Vector__XXX
  SG_ Signal_978 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 979 message_979: 8 Vector__XXX
- SG_ Signal_979 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
 
 BO_ 980 message_980: 8 Vector__XXX
  SG_ Signal_980 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -736,7 +733,7 @@ CM_ BO_ 866 "Contains signals with detailed lane line information. Used by ADAS 
 CM_ SG_ 866 LEFT_LANE_LINE "Left lane line confidence";
 CM_ SG_ 866 RIGHT_LANE_LINE "Right lane line confidence";
 CM_ SG_ 961 COUNTER_ALT "only increments on change";
-CM_ SG_ 1041 COUNTER_ALT "only increments on change";
+
 CM_ BO_ 1043 "Lamp signals do not seem universal on cars that use LKAS_ALT, but stalk signals do.";
 CM_ SG_ 1043 COUNTER_ALT "only increments on change";
 CM_ SG_ 1043 USE_ALT_LAMP "likely 1 on cars that use alt lamp signals";
@@ -749,12 +746,9 @@ VAL_ 272 LKA_MODE 1 "warning only" 2 "assist" 6 "off";
 VAL_ 272 LKA_ICON 0 "hidden" 1 "grey" 2 "green" 3 "flashing green";
 VAL_ 272 LKAS_ANGLE_ACTIVE 0 "off" 1 "not active" 2 "active";
 VAL_ 373 ACCEnable 0 "SCC ready" 1 "SCC temp fault" 2 "SCC permanent fault" 3 "SCC permanent fault, communication issue";
-VAL_ 1041 DRIVER_DOOR 0 "Closed" 1 "Opened";
-VAL_ 1041 PASSENGER_DOOR 0 "Closed" 1 "Opened";
-VAL_ 1041 PASSENGER_SEATBELT 0 "Unlatched" 1 "Latched";
-VAL_ 1041 DRIVER_SEATBELT 0 "Unlatched" 1 "Latched";
-VAL_ 1041 DRIVER_REAR_DOOR 0 "Closed" 1 "Opened";
-VAL_ 1041 PASSENGER_REAR_DOOR 0 "Closed" 1 "Opened";
+VAL_ 976 DRIVER_SEATBELT 0 "Unlatched" 1 "Latched";
+VAL_ 976 PASSENGER_SEATBELT 0 "Unlatched" 1 "Latched";
+VAL_ 979 DRIVER_DOOR 0 "Closed" 1 "Opened";
 
 BO_ 426 CRUISE_BUTTONS_ALT: 16 Vector__XXX
  SG_ DISTANCE_UNIT : 32|1@1+ (1,0) [0|1] "" Vector__XXX
