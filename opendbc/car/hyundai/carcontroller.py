@@ -221,11 +221,7 @@ class CarController(CarControllerBase):
     # HDA2 Forwarding: Forward saved messages from camera bus to car bus
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs.items():
-        # Based on fingerprint, some belong to ECAN (Bus 1), others to ACAN (Bus 0)
-        # 905 (0x389), 357 (0x165), 896 (0x380) are on Bus 1
-        if any(x in msg_name for x in ["0x389", "0x165", "0x380"]):
-          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
-        else:
-          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
+        # ADRV messages and Radar tracks need to reach the ADAS ECU on ECAN (Bus 1)
+        can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 
     return can_sends

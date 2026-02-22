@@ -160,6 +160,7 @@ class CarInterface(CarInterfaceBase):
       #ret.steerRatio = 13.0
       #ret.centerToFront = ret.wheelbase * 0.4
       ret.flags |= HyundaiFlags.CANFD_LKA_STEERING.value
+      ret.flags |= HyundaiFlags.CANFD_LKA_STEERING_ALT.value
       ret.flags |= HyundaiFlags.CANFD_ALT_BUTTONS.value # 0x2F0을 쓰는 경우 필수
 
     # Dashcam cars are missing a test route, or otherwise need validation
