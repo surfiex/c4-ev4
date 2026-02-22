@@ -1,4 +1,4 @@
-
+﻿
 
 VERSION ""
 
@@ -41,8 +41,8 @@ BU_: XXX CAMERA FRONT_RADAR ADRV APRK
 
 
 BO_ 234 MDPS: 24 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ LKA_ACTIVE : 48|1@0+ (1,0) [0|16777215] "" XXX
  SG_ LKA_FAULT : 54|1@0+ (1,0) [0|1] "" XXX
  SG_ STEERING_OUT_TORQUE : 64|12@1+ (0.1,-204.8) [0|65535] "" XXX
@@ -53,14 +53,14 @@ BO_ 234 MDPS: 24 XXX
  SG_ LKA_ANGLE_FAULT : 149|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 293 STEERING_SENSORS: 16 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ STEERING_ANGLE : 24|16@1- (0.1,0) [0|255] "deg" XXX
  SG_ STEERING_RATE : 40|8@1+ (4,0) [0|1016] "deg/s" XXX
 
 BO_ 373 TCS: 24 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ NEW_SIGNAL_4 : 24|7@1+ (1,0) [0|127] "" XXX
  SG_ aBasis : 32|11@1+ (0.01,-10.23) [0|7] "m/s^2" XXX
  SG_ ACCEL_REF_ACC : 48|11@1- (1,0) [0|1023] "" XXX
@@ -114,42 +114,42 @@ BO_ 939 RADAR_TRACK_939: 24 CAMERA
  SG_ BYTE23 : 184|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 53 ACCELERATOR: 32 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ ACCELERATOR_PEDAL : 40|8@1+ (1,0) [0|255] "" XXX
  SG_ GEAR : 192|3@1+ (1,0) [0|7] "" XXX
 
 
 BO_ 64 GEAR_ALT: 32 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ GEAR : 32|3@1+ (1,0) [0|7] "" XXX
 
 
 BO_ 69 GEAR: 24 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ GEAR : 44|3@1+ (1,0) [0|7] "" XXX
 
 
 BO_ 96 ESP_STATUS: 32 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ TRACTION_AND_STABILITY_CONTROL : 42|3@1+ (1,0) [0|63] "" XXX
  SG_ BRAKE_PRESSURE : 128|10@1+ (1,0) [0|65535] "" XXX
  SG_ BRAKE_PRESSED : 148|1@1+ (1,0) [0|3] "" XXX
 
 
 BO_ 101 BRAKE: 32 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BRAKE_POSITION : 40|16@1- (1,0) [0|65535] "" XXX
  SG_ BRAKE_PRESSED : 57|1@1+ (1,0) [0|3] "" XXX
 
 
 BO_ 160 WHEEL_SPEEDS: 24 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ MOVING_FORWARD : 56|1@0+ (1,0) [0|1] "" XXX
  SG_ MOVING_BACKWARD : 57|1@0+ (1,0) [0|1] "" XXX
  SG_ MOVING_FORWARD2 : 58|1@0+ (1,0) [0|1] "" XXX
@@ -161,8 +161,8 @@ BO_ 160 WHEEL_SPEEDS: 24 XXX
 
 
 BO_ 256 ACCELERATOR_BRAKE_ALT: 32 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BRAKE_PRESSED : 32|1@1+ (1,0) [0|1] "" XXX
  SG_ ACCELERATOR_PEDAL_PRESSED : 176|1@1+ (1,0) [0|1] "" XXX
 
@@ -216,8 +216,8 @@ BO_ 357 ADRV_0x165: 24 CAMERA
 
 
 BO_ 576 RADAR_0x240: 16 FRONT_RADAR
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
 
 
 BO_ 866 CAM_0x362: 32 CAMERA
@@ -328,7 +328,7 @@ CM_ SG_ 282 DAW_WrnMsgSta "0x1 value requests DAW Rest recommend warning message
 CM_ SG_ 282 DAW_TimeRstReq "This signal requests CLU 'Last Break Time' Reset. DAW send '0x1' when detecting driver's rest.";
 CM_ SG_ 282 DAW_SnstvtyModRetVal "This signal represents the feedback value of the current ADAS warning timing.";
 CM_ SG_ 282 FR_CMR_SCCEquipSta "This signal indicates equipment for SCC";
-CM_ SG_ 282 FR_CMR_ReqADASMapMsgVal "This signal indicates an ADAS map message request from FR_CMR to H_U. Each bit indicates the request messages as follows. - Bit 0 : H_U_NAVI_V2_STUB_E - Bit 1 : HU_NAVI_V2_PROSHORT_E_00 (곡률) - Bit 2 : HU_NAVI_V2_PROSHORT_E_00 (곡률 외 정보)";
+CM_ SG_ 282 FR_CMR_ReqADASMapMsgVal "This signal indicates an ADAS map message request from FR_CMR to H_U. Each bit indicates the request messages as follows. - Bit 0 : H_U_NAVI_V2_STUB_E - Bit 1 : HU_NAVI_V2_PROSHORT_E_00 (곡률) - Bit 2 : HU_NAVI_V2_PROSHORT_E_00 (곡률 ???�보)";
 CM_ SG_ 282 FR_CMR_SwVer1Val "This signal indicates a major version of FR_CMR software. If FR_CMR software version is A.00, 'A' and '00' mean major and minor version respectively.";
 CM_ SG_ 282 FR_CMR_SwVer2Val "This signal indicates a minor version of FR_CMR software. If FR_CMR software version is A.00, 'A' and '00' mean major and minor version respectively.";
 CM_ SG_ 298 NEW_SIGNAL_4 "todo: figure out why always set to 9";
@@ -444,8 +444,8 @@ VAL_ 976 PASSENGER_SEATBELT 0 "Unlatched" 1 "Latched";
 VAL_ 979 DRIVER_DOOR 0 "Closed" 1 "Opened";
 
 BO_ 426 CRUISE_BUTTONS_ALT: 16 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ NEW_SIGNAL_1 : 24|4@1+ (1,0) [0|15] "" XXX
  SG_ SET_ME_1 : 28|2@1+ (1,0) [0|3] "" XXX
  SG_ DISTANCE_UNIT : 30|1@1+ (1,0) [0|1] "" XXX
@@ -518,16 +518,16 @@ BO_ 416 SCC_CONTROL: 32 ADRV
  SG_ ZEROS : 215|48@0+ (1,0) [0|281474976710655] "" XXX
 
 BO_ 736 MANUAL_SPEED_LIMIT_ASSIST: 32 XXX
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ MSLA_STATUS : 26|2@1+ (1,0) [0|3] "" XXX
  SG_ MSLA_ENABLED : 38|1@1+ (1,0) [0|1] "" XXX
  SG_ MAX_SPEED : 55|8@0+ (1,0) [0|255] "" XXX
  SG_ MAX_SPEED_COPY : 144|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 676 CAM_0x2a4: 24 XXX
- SG_ COUNTER : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ CHECKSUM : 8|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER_T : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM_T : 8|16@1+ (1,0) [0|65535] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
