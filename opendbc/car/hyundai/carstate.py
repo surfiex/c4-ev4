@@ -222,11 +222,12 @@ class CarState(CarStateBase):
     ret.brakePressed = cp.vl["TCS"]["DriverBraking"] == 1
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      ret.doorOpen = cp.vl["EV4_BODY_2"]["DRIVER_DOOR"] == 1
-      ret.seatbeltUnlatched = cp.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
+      cp_a = can_parsers[Bus.pt] # Bus 0 (A-CAN)
+      ret.doorOpen = cp_a.vl["EV4_BODY_2"]["DRIVER_DOOR"] == 1
+      ret.seatbeltUnlatched = cp_a.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
     else:
-      ret.doorOpen = cp.vl["DOORS_SEATBELTS"]["DRIVER_DOOR"] == 1
-      ret.seatbeltUnlatched = cp.vl["DOORS_SEATBELTS"]["DRIVER_SEATBELT"] == 0
+      ret.doorOpen = cp_a.vl["DOORS_SEATBELTS"]["DRIVER_DOOR"] == 1
+      ret.seatbeltUnlatched = cp_a.vl["DOORS_SEATBELTS"]["DRIVER_SEATBELT"] == 0
 
     gear = cp.vl[self.gear_msg_canfd]["GEAR"]
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(gear))
@@ -251,8 +252,9 @@ class CarState(CarStateBase):
     # TODO: alt signal usage may be described by cp.vl['BLINKERS']['USE_ALT_LAMP']
     left_blinker_sig, right_blinker_sig = "LEFT_LAMP", "RIGHT_LAMP"
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(50, cp.vl["RADAR_TRACK_939"]["LEFT_BLINKER"],
-                                                                        cp.vl["EV4_BODY_1"]["RIGHT_BLINKER"])
+      cp_a = can_parsers[Bus.pt] # Bus 0 (A-CAN)
+      ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(50, cp_a.vl["RADAR_TRACK_939"]["LEFT_BLINKER"],
+                                                                        cp_a.vl["EV4_BODY_1"]["RIGHT_BLINKER"])
     else:
       if self.CP.carFingerprint == CAR.HYUNDAI_KONA_EV_2ND_GEN:
         left_blinker_sig, right_blinker_sig = "LEFT_LAMP_ALT", "RIGHT_LAMP_ALT"
@@ -354,8 +356,18 @@ class CarState(CarStateBase):
     for addr in range(933, 965):
       cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))
 
+    a_msgs = []
+    if CP.carFingerprint == CAR.KIA_EV4:
+      a_msgs += [
+        ("EV4_BODY_1", float('nan')),
+        ("EV4_BODY_2", float('nan')),
+        ("RADAR_TRACK_939", float('nan')),
+      ]
+
+    a_parser = CANParser(DBC[CP.carFingerprint][self.pt_bus], a_msgs, CanBus(CP).ACAN)
+
     return {
-      Bus.pt: pt_parser,
+      Bus.pt: a_parser,
       self.pt_bus: pt_parser,
       Bus.cam: CANParser(DBC[CP.carFingerprint][self.pt_bus], cam_msgs, CanBus(CP).CAM),
     }
