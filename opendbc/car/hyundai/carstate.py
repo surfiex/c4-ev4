@@ -226,9 +226,9 @@ class CarState(CarStateBase):
       cp_a = can_parsers[Bus.pt] # Bus 0 (A-CAN)
       ret.doorOpen = cp_a.vl["EV4_BODY_1"]["DOOR_OPEN_ANY"] == 1
       ret.seatbeltUnlatched = cp_a.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
-      ret.leftBlinker = cp_a.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
-      ret.rightBlinker = cp_a.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
-      gear = cp_a.vl["GEAR_SHIFTER"]["GEAR"]
+      ret.leftBlinker = cp.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
+      ret.rightBlinker = cp.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
+      gear = cp.vl["GEAR_SHIFTER"]["GEAR"]
     else:
       ret.doorOpen = cp_a.vl["DOORS_SEATBELTS"]["DRIVER_DOOR"] == 1
       ret.seatbeltUnlatched = cp_a.vl["DOORS_SEATBELTS"]["DRIVER_SEATBELT"] == 0
@@ -328,7 +328,6 @@ class CarState(CarStateBase):
 
     if CP.carFingerprint == CAR.KIA_EV4:
       msgs += [
-        ("EV4_BODY_1", float('nan')),
         ("GEAR_SHIFTER", float('nan')),
         ("LFA_BUTTON", float('nan')),
         ("RADAR_TRACK_939", float('nan')),
@@ -361,9 +360,6 @@ class CarState(CarStateBase):
     if CP.carFingerprint == CAR.KIA_EV4:
       a_msgs += [
         ("EV4_BODY_1", float('nan')),
-        ("GEAR_SHIFTER", float('nan')),
-        ("LFA_BUTTON", float('nan')),
-        ("RADAR_TRACK_939", float('nan')),
       ]
 
     a_parser = CANParser(DBC[CP.carFingerprint][self.pt_bus], a_msgs, CanBus(CP).ACAN)
