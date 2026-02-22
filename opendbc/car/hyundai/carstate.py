@@ -251,7 +251,7 @@ class CarState(CarStateBase):
     # TODO: alt signal usage may be described by cp.vl['BLINKERS']['USE_ALT_LAMP']
     left_blinker_sig, right_blinker_sig = "LEFT_LAMP", "RIGHT_LAMP"
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(50, cp.vl["EV4_BODY_3"]["LEFT_BLINKER"],
+      ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(50, cp.vl["RADAR_TRACK_939"]["LEFT_BLINKER"],
                                                                         cp.vl["EV4_BODY_1"]["RIGHT_BLINKER"])
     else:
       if self.CP.carFingerprint == CAR.HYUNDAI_KONA_EV_2ND_GEN:
