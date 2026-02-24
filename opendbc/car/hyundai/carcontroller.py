@@ -175,7 +175,7 @@ class CarController(CarControllerBase):
                                                         self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT))
 
     # LFA and HDA icons
-    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long or self.CP.carFingerprint == CAR.KIA_EV4):
+    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long):
       can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CAN, CC.enabled, hyundaicanfd.hkg_can_fd_checksum, self.frame))
 
     # blinkers
@@ -193,7 +193,8 @@ class CarController(CarControllerBase):
         self.accel_last = accel
     else:
       # HDA2 needs ADRV heartbeats even for lateral-only
-      if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
+      # EV4 native SCC/FCA conflicts heavily with these fake heartbeats
+      if (self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT) and self.CP.carFingerprint != CAR.KIA_EV4:
         can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
 
       # button presses
