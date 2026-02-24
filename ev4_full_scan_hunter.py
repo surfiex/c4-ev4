@@ -12,13 +12,29 @@ def full_scan(file_path):
     ref_vals = []
 
     messages = []
+    is_csv = file_path.endswith(".csv")
+
     with open(file_path, "r") as f:
-        for i, line in enumerate(f):
-            try:
-                m = json.loads(line)
-                messages.append(m)
-            except: continue
-            if i > 50000: break # Sample 50k for speed
+        if is_csv:
+            import csv
+            reader = csv.DictReader(f)
+            for i, row in enumerate(reader):
+                try:
+                    m = {
+                        "t": int(row["Time"]) / 1e9, # Convert ns to s if needed, but wheel speed logic expects match
+                        "address": int(row["Address"]),
+                        "data": row["Data"]
+                    }
+                    messages.append(m)
+                except: continue
+                if i > 100000: break
+        else:
+            for i, line in enumerate(f):
+                try:
+                    m = json.loads(line)
+                    messages.append(m)
+                except: continue
+                if i > 100000: break
 
     # Build reference speed trace
     for m in messages:
