@@ -11,6 +11,8 @@ from cereal import messaging
 BUS_RADAR_CHASSIS = 0
 BUS_CAMERA_ECAN = 1
 
+import threading
+
 class HighSpeedLogger:
   def __init__(self):
     self.keep_running = True
@@ -24,6 +26,20 @@ class HighSpeedLogger:
     timestamp = int(time.time())
     self.log_path = f"/data/ev4_re_log_{timestamp}.csv"
 
+  def input_thread(self):
+    print("Commands: Type text and press Enter to set a MARKER. Type 'clear' to reset.")
+    while self.keep_running:
+      try:
+        user_input = input().strip()
+        if user_input.lower() == 'clear':
+          self.marker = ""
+          print(">>> Marker Cleared")
+        else:
+          self.marker = user_input
+          print(f">>> Marker Set: {self.marker}")
+      except EOFError:
+        break
+
   def signal_handler(self, sig, frame):
     print("\n[Logger] Stopping...")
     self.keep_running = False
@@ -31,10 +47,12 @@ class HighSpeedLogger:
   def run(self):
     signal.signal(signal.SIGINT, self.signal_handler)
 
+    # Start input thread
+    threading.Thread(target=self.input_thread, daemon=True).start()
+
     print("="*50)
     print(f"KIA EV4 HIGH-SPEED RE LOGGER")
     print(f"Saving to: {self.log_path}")
-    print("Commands: Type text and press Enter to set a MARKER.")
     print("="*50)
 
     with open(self.log_path, "w", newline='') as csvfile:
@@ -44,7 +62,7 @@ class HighSpeedLogger:
       count = 0
       try:
         while self.keep_running:
-          # 1. Update CarState (Ground Truth)
+          # 1. Update CarState
           state = messaging.recv_one_or_none(self.state_sock)
           if state is not None:
             self.last_carstate = state.carState
@@ -55,7 +73,6 @@ class HighSpeedLogger:
           for msg in can_msgs:
             for c in msg.can:
               if c.src in [BUS_RADAR_CHASSIS, BUS_CAMERA_ECAN]:
-                # Collect relevant context
                 vego = self.last_carstate.vEgo if self.last_carstate else 0
                 gas = self.last_carstate.gasPressed if self.last_carstate else False
                 brake = self.last_carstate.brakePressed if self.last_carstate else False
@@ -76,13 +93,11 @@ class HighSpeedLogger:
                 ])
                 count += 1
 
-          # 3. Handle markers without blocking (non-ideal in single thread, but okay for CLI)
-          # Note: Real-time marker input usually needs a separate thread or non-blocking read
-          # For now, we rely on high-frequency loops.
-
-          if count % 2000 == 0:
+          if count % 5000 == 0 and count > 0:
             csvfile.flush()
-            print(f"\rCaptured {count} messages... (Marker: {self.marker or 'None'})", end="")
+            print(f"\rCaptured {count} messages... [Last Marker: {self.marker or 'None'}]", end="")
+
+          time.sleep(0.001) # Small sleep to yield to input thread
 
       except KeyboardInterrupt:
         pass
