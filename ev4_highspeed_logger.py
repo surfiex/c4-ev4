@@ -18,6 +18,8 @@ class HighSpeedLogger:
     self.keep_running = True
     self.marker = ""
     self.last_carstate = None
+    self.v_raw = 0.0
+    self.v_clu_raw = 0.0
 
     # Initialize Openpilot messaging
     self.can_sock = messaging.sub_sock('can', conflate=False)
@@ -72,6 +74,23 @@ class HighSpeedLogger:
 
           for msg in can_msgs:
             for c in msg.can:
+                # Raw speed parsing for real-time verification
+                if c.address == 160 and c.src == 1:
+                    try:
+                        d = c.dat
+                        v_fl = (d[8] + ((d[9] & 0x3F) << 8)) * 0.03125
+                        v_fr = (d[10] + ((d[11] & 0x3F) << 8)) * 0.03125
+                        self.v_raw = (v_fl + v_fr) / 2.0
+                    except:
+                        pass
+
+                if c.address == 506 and c.src == 1:
+                    try:
+                        d = c.dat
+                        self.v_clu_raw = d[5] # Candidate cluster speed from ISLA
+                    except:
+                        pass
+
                 # Log ALL buses to catch anything unexpected
                 vego = self.last_carstate.vEgo if self.last_carstate else 0
                 vclu = self.last_carstate.vEgoCluster if self.last_carstate else 0
@@ -99,7 +118,7 @@ class HighSpeedLogger:
             csvfile.flush()
             v_ego = self.last_carstate.vEgo * 3.6 if self.last_carstate else 0
             v_clu = self.last_carstate.vEgoCluster * 3.6 if self.last_carstate else 0
-            print(f"\r[Capturing] Msgs: {count:>7} | vWheel: {v_ego:>5.1f} | vClu: {v_clu:>5.1f} | Marker: {self.marker or 'None'}", end="")
+            print(f"\r[Capturing] Msgs: {count:>7} | vWheel: {v_ego:>5.1f} (Raw:{self.v_raw:>5.1f}) | vClu: {v_clu:>5.1f} (Raw:{self.v_clu_raw:>5.1f}) | Marker: {self.marker or 'None'}", end="")
 
           time.sleep(0.001)
 
