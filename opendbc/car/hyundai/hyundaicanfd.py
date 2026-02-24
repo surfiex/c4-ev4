@@ -132,7 +132,8 @@ def create_lfahda_cluster(packer, CAN, enabled, checksum_func=None, cnt=None):
   if cnt is not None:
     values["COUNTER"] = cnt % 256
   if checksum_func is not None:
-    dat = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)[2]
+    msg = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
+    dat = msg[2]
     values["CHECKSUM"] = checksum_func(0x1e0, None, dat)
 
   return packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
