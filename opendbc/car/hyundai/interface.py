@@ -152,7 +152,7 @@ class CarInterface(CarInterfaceBase):
       #ret.flags |= HyundaiFlags.CANFD.value
       #ret.flags |= HyundaiFlags.EV.value
       # HAD(HDA2) 사양이라면 아래 플래그가 필수입니다.
-      #ret.flags |= HyundaiFlags.CAN_FD_HDA2.value
+      ret.flags |= HyundaiFlags.CAN_FD_HDA2.value
 
       # 제원 설정 (앞서 정리한 값들)
       #ret.mass = 1836.
