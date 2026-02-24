@@ -257,6 +257,9 @@ class CarState(CarStateBase):
 
     ret.steerFaultTemporary = cp.vl["MDPS"]["LKA_FAULT"] != 0
 
+    # Physical brake pedal only (ignores auto-regenerative braking)
+    ret.brakePressed = cp.vl["TCS"]["DriverBraking"] == 1
+
     # TODO: alt signal usage may be described by cp.vl['BLINKERS']['USE_ALT_LAMP']
     left_blinker_sig, right_blinker_sig = "LEFT_LAMP", "RIGHT_LAMP"
     if self.CP.carFingerprint != CAR.KIA_EV4:

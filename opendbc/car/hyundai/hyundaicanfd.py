@@ -127,6 +127,15 @@ def create_lfahda_cluster(packer, CAN, enabled, checksum_func=None, cnt=None):
   values = {
     "HDA_ICON": 1, # white
     "LFA_ICON": 2 if enabled else 1, # 2: green, 1: white
+    # EV4 cluster validates bytes 8-15; stock value: fe f7 0f 00 00 00 f0 bf
+    "BYTE8": 0xfe,
+    "BYTE9": 0xf7,
+    "BYTE10": 0x0f,
+    "BYTE11": 0x00,
+    "BYTE12": 0x00,
+    "BYTE13": 0x00,
+    "BYTE14": 0xf0,
+    "BYTE15": 0xbf,
   }
 
   if cnt is not None:

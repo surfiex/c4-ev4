@@ -1537,6 +1537,14 @@ BO_ 480 LFAHDA_CLUSTER: 16 ADRV
  SG_ NEW_SIGNAL_1 : 32|3@1+ (1,0) [0|7] "" XXX
  SG_ LFA_ICON : 47|2@1+ (1,0) [0|3] "" XXX
  SG_ NEW_SIGNAL_3 : 49|1@0+ (1,0) [0|1] "" XXX
+ SG_ BYTE8 : 64|8@1+ (1,0) [0|255] "" XXX
+ SG_ BYTE9 : 72|8@1+ (1,0) [0|255] "" XXX
+ SG_ BYTE10 : 80|8@1+ (1,0) [0|255] "" XXX
+ SG_ BYTE11 : 88|8@1+ (1,0) [0|255] "" XXX
+ SG_ BYTE12 : 96|8@1+ (1,0) [0|255] "" XXX
+ SG_ BYTE13 : 104|8@1+ (1,0) [0|255] "" XXX
+ SG_ BYTE14 : 112|8@1+ (1,0) [0|255] "" XXX
+ SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 490 ADRV_0x1ea: 32 ADRV
  SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
@@ -1646,12 +1654,10 @@ BO_ 442 BLINDSPOTS_REAR_CORNERS: 24 XXX
  SG_ FL_INDICATOR_ALT : 138|1@0+ (1,0) [0|1] "" XXX
  SG_ FR_INDICATOR_ALT : 141|1@0+ (1,0) [0|1] "" XXX
 
-BO_ 480 LFAHDA_CLUSTER: 16 ADRV
- SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
- SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_4 : 24|1@0+ (1,0) [0|1] "" XXX
- SG_ NEW_SIGNAL_5 : 25|1@0+ (1,0) [0|1] "" XXX
- SG_ NEW_SIGNAL_2 : 30|1@0+ (1,0) [0|1] "" XXX
- SG_ HDA_ICON : 31|1@1+ (1,0) [0|1] "" XXX
- SG_ NEW_SIGNAL_1 : 32|3@1+ (1,0) [0|7] "" XXX
- SG_ LFA_ICON : 47|2@1+ (1,0) [0|3] "" XXX
+BO_ 282 FR_CMR_01_10ms: 16 FR_CMR
+ SG_ FR_CMR_Crc1Val : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ FR_CMR_AlvCnt1Val : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ DAW_OptUsmSta : 52|3@1+ (1,0) [0|7] "" XXX
+ SG_ DAW_SysSta : 55|4@1+ (1,0) [0|15] "" XXX
+ SG_ DAW_WrnMsgSta : 59|3@1+ (1,0) [0|7] "" XXX
+ SG_ DAW_TimeRstReq : 62|2@1+ (1,0) [0|3] "" XXX
