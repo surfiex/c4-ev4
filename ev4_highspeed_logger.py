@@ -72,7 +72,7 @@ class HighSpeedLogger:
 
           for msg in can_msgs:
             for c in msg.can:
-              if c.src in [BUS_RADAR_CHASSIS, BUS_CAMERA_ECAN]:
+                # Log ALL buses to catch anything unexpected
                 vego = self.last_carstate.vEgo if self.last_carstate else 0
                 gas = self.last_carstate.gasPressed if self.last_carstate else False
                 brake = self.last_carstate.brakePressed if self.last_carstate else False
@@ -93,11 +93,11 @@ class HighSpeedLogger:
                 ])
                 count += 1
 
-          if count % 5000 == 0 and count > 0:
+          if count % 10000 == 0 and count > 0:
             csvfile.flush()
-            print(f"\rCaptured {count} messages... [Last Marker: {self.marker or 'None'}]", end="")
+            print(f"\r[Capturing] Total Msgs: {count:>7} | Bus 0: Radar | Bus 1: E-CAN | Bus 2: GW | Marker: {self.marker or 'None'}", end="")
 
-          time.sleep(0.001) # Small sleep to yield to input thread
+          time.sleep(0.001)
 
       except KeyboardInterrupt:
         pass
