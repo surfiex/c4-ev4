@@ -220,8 +220,8 @@ class CarState(CarStateBase):
       cp_a = can_parsers[Bus.pt] # Bus 0 (A-CAN)
       ret.doorOpen = cp_a.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 1
       ret.seatbeltUnlatched = cp_a.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
-      ret.leftBlinker = cp.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
-      ret.rightBlinker = cp.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
+      ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
+      ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["GEAR_SHIFTER"]["GEAR"]
     else:
       if self.CP.flags & (HyundaiFlags.EV | HyundaiFlags.HYBRID):
@@ -295,7 +295,9 @@ class CarState(CarStateBase):
     self.cruise_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["CRUISE_BUTTONS"])
     self.main_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["ADAPTIVE_CRUISE_MAIN_BTN"])
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      self.lda_button = cp.vl["LFA_BUTTON"]["LFA_BTN"] or cp.vl["CRUISE_BUTTONS_ALT"]["LDA_BTN"]
+      self.lda_button = cp_cam.vl["LFA_BUTTON"]["LFA_BTN"] or cp.vl["CRUISE_BUTTONS_ALT"]["LDA_BTN"]
+    elif self.CP.flags & HyundaiFlags.CANFD_ALT_BUTTONS:
+      self.lda_button = cp.vl[self.cruise_btns_msg_canfd]["LDA_BTN"]
     else:
       self.lda_button = cp.vl[self.cruise_btns_msg_canfd]["LDA_BTN"]
     self.buttons_counter = cp.vl[self.cruise_btns_msg_canfd].get("COUNTER", cp.vl[self.cruise_btns_msg_canfd].get("COUNTER_T", 0))
@@ -370,6 +372,8 @@ class CarState(CarStateBase):
       ("ADRV_0x380", float('nan')),
       ("ISLA", float('nan')),
     ]
+    if CP.carFingerprint == CAR.KIA_EV4:
+      cam_msgs.append(("LFA_BUTTON", float('nan')))
     for addr in range(933, 965):
       cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))
 
