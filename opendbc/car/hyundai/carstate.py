@@ -290,7 +290,10 @@ class CarState(CarStateBase):
     prev_lda_button = self.lda_button
     self.cruise_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["CRUISE_BUTTONS"])
     self.main_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["ADAPTIVE_CRUISE_MAIN_BTN"])
-    self.lda_button = cp.vl[self.cruise_btns_msg_canfd]["LDA_BTN"]
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      self.lda_button = cp.vl["LFA_BUTTON"]["LFA_BTN"]
+    else:
+      self.lda_button = cp.vl[self.cruise_btns_msg_canfd]["LDA_BTN"]
     self.buttons_counter = cp.vl[self.cruise_btns_msg_canfd].get("COUNTER", cp.vl[self.cruise_btns_msg_canfd].get("COUNTER_T", 0))
     ret.accFaulted = cp.vl["TCS"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
 
