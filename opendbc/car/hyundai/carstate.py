@@ -291,7 +291,7 @@ class CarState(CarStateBase):
     self.cruise_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["CRUISE_BUTTONS"])
     self.main_buttons.extend(cp.vl_all[self.cruise_btns_msg_canfd]["ADAPTIVE_CRUISE_MAIN_BTN"])
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      self.lda_button = cp.vl["LFA_BUTTON"]["LFA_BTN"]
+      self.lda_button = cp.vl["LFA_BUTTON"]["LFA_BTN"] or cp.vl["CRUISE_BUTTONS_ALT"]["LDA_BTN"]
     else:
       self.lda_button = cp.vl[self.cruise_btns_msg_canfd]["LDA_BTN"]
     self.buttons_counter = cp.vl[self.cruise_btns_msg_canfd].get("COUNTER", cp.vl[self.cruise_btns_msg_canfd].get("COUNTER_T", 0))
@@ -327,6 +327,7 @@ class CarState(CarStateBase):
       ("BLINDSPOTS_REAR_CORNERS", float('nan')),
       ("SCC_CONTROL", 50),
       ("MANUAL_SPEED_LIMIT_ASSIST", float('nan')),
+      ("LFAHDA_CLUSTER", 5),
     ]
 
     if CP.carFingerprint == CAR.KIA_EV4:
