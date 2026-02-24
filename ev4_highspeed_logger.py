@@ -57,7 +57,7 @@ class HighSpeedLogger:
 
     with open(self.log_path, "w", newline='') as csvfile:
       writer = csv.writer(csvfile)
-      writer.writerow(["Time", "Bus", "Address", "Data", "Marker", "vEgo", "Gas", "Brake", "SteerAngle", "SteerTorque"])
+      writer.writerow(["Time", "Bus", "Address", "Data", "Marker", "vEgo", "vClu", "Gas", "Brake", "SteerAngle", "SteerTorque"])
 
       count = 0
       try:
@@ -74,6 +74,7 @@ class HighSpeedLogger:
             for c in msg.can:
                 # Log ALL buses to catch anything unexpected
                 vego = self.last_carstate.vEgo if self.last_carstate else 0
+                vclu = self.last_carstate.vEgoCluster if self.last_carstate else 0
                 gas = self.last_carstate.gasPressed if self.last_carstate else False
                 brake = self.last_carstate.brakePressed if self.last_carstate else False
                 steer_a = self.last_carstate.steeringAngleDeg if self.last_carstate else 0
@@ -86,6 +87,7 @@ class HighSpeedLogger:
                   c.dat.hex(),
                   self.marker,
                   f"{vego:.2f}",
+                  f"{vclu:.2f}",
                   int(gas),
                   int(brake),
                   f"{steer_a:.2f}",
@@ -95,7 +97,9 @@ class HighSpeedLogger:
 
           if count % 10000 == 0 and count > 0:
             csvfile.flush()
-            print(f"\r[Capturing] Total Msgs: {count:>7} | Bus 0: Radar | Bus 1: E-CAN | Bus 2: GW | Marker: {self.marker or 'None'}", end="")
+            v_ego = self.last_carstate.vEgo * 3.6 if self.last_carstate else 0
+            v_clu = self.last_carstate.vEgoCluster * 3.6 if self.last_carstate else 0
+            print(f"\r[Capturing] Msgs: {count:>7} | vWheel: {v_ego:>5.1f} | vClu: {v_clu:>5.1f} | Marker: {self.marker or 'None'}", end="")
 
           time.sleep(0.001)
 

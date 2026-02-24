@@ -251,6 +251,14 @@ class CarState(CarStateBase):
     ret.steeringTorque = cp.vl["MDPS"]["STEERING_COL_TORQUE"]
     ret.steeringTorqueEps = cp.vl["MDPS"]["STEERING_OUT_TORQUE"]
     ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorque) > self.params.STEER_THRESHOLD, 5)
+
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      # Candidate Cluster Speeds for RE Drive
+      # Check BOTH 0x1fa (CAN_SPEED_REF) and 0x3d0 (SPEED_REF_1)
+      v_clu_1 = cp_cam.vl["ISLA"]["CAN_SPEED_REF"] * speed_factor
+      v_clu_2 = cp_a.vl["EV4_BODY_1"]["SPEED_REF_1"] * speed_factor
+      ret.vEgoCluster = v_clu_1 if v_clu_1 > 0 else v_clu_2
+
     ret.steerFaultTemporary = cp.vl["MDPS"]["LKA_FAULT"] != 0
 
     # TODO: alt signal usage may be described by cp.vl['BLINKERS']['USE_ALT_LAMP']
@@ -303,8 +311,13 @@ class CarState(CarStateBase):
 
     # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus
     self.hda2_forward_msgs = {}
-    for addr in [905, 357, 896] + list(range(933, 965)):
-      msg_name = f"RADAR_TRACK_{addr}" if addr >= 933 else ("ADRV_0x389" if addr == 905 else ("ADRV_0x165" if addr == 357 else "ADRV_0x380"))
+    for addr in [905, 357, 896, 866, 867, 868] + list(range(933, 965)):
+      msg_name = f"RADAR_TRACK_{addr}" if addr >= 933 else (
+        "ADRV_0x389" if addr == 905 else (
+        "ADRV_0x165" if addr == 357 else (
+        "ADRV_0x380" if addr == 896 else (
+        "CAM_0x362" if addr == 866 else (
+        "CAM_0x363" if addr == 867 else "CAM_0x364")))))
       if msg_name in cp_cam.vl:
         self.hda2_forward_msgs[msg_name] = copy.copy(cp_cam.vl[msg_name])
 
@@ -352,10 +365,13 @@ class CarState(CarStateBase):
 
     cam_msgs = [
       ("CAM_0x362", float('nan')),
+      ("CAM_0x363", float('nan')),
+      ("CAM_0x364", float('nan')),
       ("CAM_0x2a4", float('nan')),
       ("ADRV_0x389", float('nan')),
       ("ADRV_0x165", float('nan')),
       ("ADRV_0x380", float('nan')),
+      ("ISLA", float('nan')),
     ]
     for addr in range(933, 965):
       cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))
