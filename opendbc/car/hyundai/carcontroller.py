@@ -175,7 +175,7 @@ class CarController(CarControllerBase):
                                                         self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT))
 
     # LFA and HDA icons
-    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long):
+    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long or self.CP.carFingerprint == CAR.KIA_EV4):
       can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CAN, CC.enabled, hyundaicanfd.hkg_can_fd_checksum, self.frame))
 
     # blinkers
