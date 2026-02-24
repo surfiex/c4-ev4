@@ -343,22 +343,12 @@ class CarState(CarStateBase):
       msgs += [
         ("GEAR_SHIFTER", float('nan')),
         ("LFA_BUTTON", float('nan')),
+        ("RADAR_TRACK_939", float('nan')),
       ]
     else:
       msgs += [
         ("ACCELERATOR", 100),
         ("STEERING_SENSORS", 100),
-      ]
-
-    if CP.carFingerprint == CAR.KIA_EV4:
-      msgs += [
-        ("GEAR_SHIFTER", float('nan')),
-        ("LFA_BUTTON", float('nan')),
-        ("RADAR_TRACK_939", float('nan')),
-      ]
-    else:
-      # these messages are not present on the EV4 ECAN but are accessed by CarState
-      msgs += [
         ("DOORS_SEATBELTS", float('nan')),
         ("BLINKERS", float('nan')),
       ]
