@@ -102,4 +102,7 @@ def full_scan(file_path):
         print(f"{str(key):<20} | {match:>6.2f} | {vmin:>3}-{vmax:<3}")
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python3 ev4_full_scan_hunter.py <log_file.jsonl>")
+        sys.exit(1)
     full_scan(sys.argv[1])

@@ -29,4 +29,7 @@ def analyze_freq(file_path):
         print(f"0x{addr:03x} ({addr:<5}) | {count:<8} | {freq:>8.1f} Hz")
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python3 ev4_freq_analyzer.py <log_file.jsonl>")
+        sys.exit(1)
     analyze_freq(sys.argv[1])
