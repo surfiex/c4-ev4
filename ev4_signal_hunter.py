@@ -3,6 +3,9 @@ import sys
 import csv
 import collections
 
+# Time window in nanoseconds (e.g., 2 seconds = 2e9)
+WINDOW_NS = 2 * 1e9
+
 def analyze_log(file_path, target_id=None, marker_filter=None):
   print(f"--- Analyzing Log: {file_path} ---")
   if target_id: print(f"Target ID: {target_id}")
@@ -10,43 +13,50 @@ def analyze_log(file_path, target_id=None, marker_filter=None):
   print("-" * 30)
 
   msg_history = collections.defaultdict(lambda: None)
-  events = []
+  marker_timestamps = []
 
+  # Step 1: Find all marker timestamps
   with open(file_path, "r") as f:
     reader = csv.DictReader(f)
+    last_marker = ""
     for row in reader:
-      addr = int(row["Address"])
-      if target_id and addr != target_id:
-        continue
-
       marker = row["Marker"]
-      if marker_filter and marker_filter not in marker:
-        continue
+      if marker and marker != last_marker:
+        if marker_filter is None or marker_filter in marker:
+            marker_timestamps.append((int(row["Time"]), marker))
+        last_marker = marker
 
-      data = row["Data"]
-      timestamp = row["Time"]
+  print(f"Found {len(marker_timestamps)} marker events.")
 
-      # Detect Bit Flips
-      prev_data = msg_history[addr]
-      if prev_data and prev_data != data:
-        # Convert to bit strings for detailed diff
-        b1 = bin(int(prev_data, 16))[2:].zfill(len(data)*4)
-        b2 = bin(int(data, 16))[2:].zfill(len(data)*4)
+  # Step 2: Extract data around markers
+  for ts, marker_name in marker_timestamps:
+    print(f"\n[EVENT] Marker: {marker_name} at {ts}")
+    print("-" * 50)
 
-        diff_bits = []
-        for i, (bit1, bit2) in enumerate(zip(b1, b2)):
-          if bit1 != bit2:
-            diff_bits.append(f"Bit {i}: {bit1}->{bit2}")
+    with open(file_path, "r") as f:
+      reader = csv.DictReader(f)
+      for row in reader:
+        row_ts = int(row["Time"])
+        # Only process data within the window around the marker
+        if abs(row_ts - ts) < WINDOW_NS:
+          addr = int(row["Address"])
+          if target_id and addr != target_id:
+            continue
 
-        if diff_bits:
-          print(f"[{timestamp}] ID: {addr} | Marker: {marker or 'None'}")
-          print(f"  Prev: 0x{prev_data}")
-          print(f"  Curr: 0x{data}")
-          print(f"  Changes: {', '.join(diff_bits)}")
-          print(f"  State: vEgo={row['vEgo']}, G:{row['Gas']}, B:{row['Brake']}, S:{row['SteerAngle']}")
-          print("-" * 10)
+          data = row["Data"]
+          prev_data = msg_history[addr]
 
-      msg_history[addr] = data
+          if prev_data and prev_data != data:
+            b1 = bin(int(prev_data, 16))[2:].zfill(len(data)*4)
+            b2 = bin(int(data, 16))[2:].zfill(len(data)*4)
+
+            diff_bits = [f"B{i}:{bit1}->{bit2}" for i, (bit1, bit2) in enumerate(zip(b1, b2)) if bit1 != bit2]
+
+            if diff_bits:
+              rel_time = (row_ts - ts) / 1e6 # ms
+              print(f"[{rel_time:+.2f}ms] ID:{addr} | {prev_data}->{data} | Bits: {', '.join(diff_bits)}")
+
+          msg_history[addr] = data
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
