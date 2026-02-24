@@ -1,64 +1,59 @@
 #!/usr/bin/env python3
-import os
-import time
-import json
-import zmq
-try:
-    from cereal import messaging
-except ImportError:
-    print("Error: cereal/messaging not found. Please run this script on the Openpilot device.")
-    exit(1)
+import sys
+import csv
+import collections
 
-def main():
-    print("==================================================")
-    print("      EV4 Signal Hunter (Raw CAN Logger)          ")
-    print("==================================================")
-    print("\n[목적] 누락된 EV4 신호(안전벨트, 도어, 깜빡이, 기어 등)를")
-    print("찾기 위해 C-CAN 및 E-CAN 통신의 모든 원시 데이터를 기록합니다.\n")
+def analyze_log(file_path, target_id=None, marker_filter=None):
+  print(f"--- Analyzing Log: {file_path} ---")
+  if target_id: print(f"Target ID: {target_id}")
+  if marker_filter: print(f"Marker Filter: {marker_filter}")
+  print("-" * 30)
 
-    output_file = f"/tmp/ev4_signal_hunt_{int(time.time())}.jsonl"
-    print(f"로그 저장 위치: {output_file}")
-    print("종료하려면 언제든지 Ctrl+C를 누르세요.\n")
+  msg_history = collections.defaultdict(lambda: None)
+  events = []
 
-    input("👉 시작하려면 엔터를 누르세요...")
+  with open(file_path, "r") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+      addr = int(row["Address"])
+      if target_id and addr != target_id:
+        continue
 
-    print("\n[기록 중...] 지금부터 테스트 행동을 정확한 초 단위로 메모해주세요!")
+      marker = row["Marker"]
+      if marker_filter and marker_filter not in marker:
+        continue
 
-    # Connect to the openpilot raw CAN socket
-    context = zmq.Context()
-    sm = messaging.SubMaster(['can'])
+      data = row["Data"]
+      timestamp = row["Time"]
 
-    start_time = time.time()
-    msg_count = 0
+      # Detect Bit Flips
+      prev_data = msg_history[addr]
+      if prev_data and prev_data != data:
+        # Convert to bit strings for detailed diff
+        b1 = bin(int(prev_data, 16))[2:].zfill(len(data)*4)
+        b2 = bin(int(data, 16))[2:].zfill(len(data)*4)
 
-    try:
-        with open(output_file, 'w') as f:
-            while True:
-                sm.update(0)
-                if sm.updated['can']:
-                    current_time = time.time() - start_time
+        diff_bits = []
+        for i, (bit1, bit2) in enumerate(zip(b1, b2)):
+          if bit1 != bit2:
+            diff_bits.append(f"Bit {i}: {bit1}->{bit2}")
 
-                    for msg in sm['can']:
-                        # Save bus, address, and raw data bytes
-                        log_entry = {
-                            "time": round(current_time, 3),
-                            "bus": msg.src,
-                            "address": msg.address,
-                            "data": msg.dat.hex()
-                        }
-                        f.write(json.dumps(log_entry) + '\n')
-                        msg_count += 1
+        if diff_bits:
+          print(f"[{timestamp}] ID: {addr} | Marker: {marker or 'None'}")
+          print(f"  Prev: 0x{prev_data}")
+          print(f"  Curr: 0x{data}")
+          print(f"  Changes: {', '.join(diff_bits)}")
+          print(f"  State: vEgo={row['vEgo']}, G:{row['Gas']}, B:{row['Brake']}, S:{row['SteerAngle']}")
+          print("-" * 10)
 
-                        if msg_count % 5000 == 0:
-                            print(f"  -> {msg_count}개의 메시지 수집됨... (진행 시간: {round(current_time, 1)}초)", end='\r')
-
-                time.sleep(0.01) # 100Hz 루프
-
-    except KeyboardInterrupt:
-        print(f"\n\n🛑 기록 종료! 총 {msg_count}개의 메시지가 저장되었습니다.")
-        print(f"저장된 파일: {output_file}")
-        print("\n이 스크립트를 종료하고, 해당 jsonl 파일과 시간별 행동 메모를")
-        print("PC로 복사한 후 분석을 진행해 주세요.")
+      msg_history[addr] = data
 
 if __name__ == "__main__":
-    main()
+  if len(sys.argv) < 2:
+    print("Usage: python3 ev4_signal_hunter.py <log_file.csv> [target_id] [marker_filter]")
+    sys.exit(1)
+
+  target_id = int(sys.argv[2]) if len(sys.argv) > 2 else None
+  marker_f = sys.argv[3] if len(sys.argv) > 3 else None
+
+  analyze_log(sys.argv[1], target_id, marker_f)
