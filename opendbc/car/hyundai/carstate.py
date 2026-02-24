@@ -251,11 +251,9 @@ class CarState(CarStateBase):
     ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorque) > self.params.STEER_THRESHOLD, 5)
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      # Candidate Cluster Speeds for RE Drive
-      # Check BOTH 0x1fa (CAN_SPEED_REF) and 0x3d0 (SPEED_REF_1)
-      v_clu_1 = cp_cam.vl["ISLA"]["CAN_SPEED_REF"] * speed_factor
+      # EV4_BODY_1 is a strong candidate for Cluster Speed
       v_clu_2 = cp_a.vl["EV4_BODY_1"]["SPEED_REF_1"] * speed_factor
-      ret.vEgoCluster = v_clu_1 if v_clu_1 > 0 else v_clu_2
+      ret.vEgoCluster = v_clu_2
 
     ret.steerFaultTemporary = cp.vl["MDPS"]["LKA_FAULT"] != 0
 
