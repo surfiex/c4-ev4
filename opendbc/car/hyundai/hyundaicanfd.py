@@ -125,16 +125,15 @@ def create_acc_cancel(packer, CP, CAN, cruise_info_copy):
 
 def create_lfahda_cluster(packer, CAN, enabled, checksum_func=None, cnt=None):
   values = {
-    "HDA_ICON": 1 if enabled else 1, # 0: hidden, 1: white, 2: green
-    "LFA_ICON": 2 if enabled else 1, # 0: hidden, 1: white, 2: green
+    "HDA_ICON": 1, # white
+    "LFA_ICON": 2 if enabled else 1, # 2: green, 1: white
   }
 
   if cnt is not None:
     values["COUNTER"] = cnt % 256
   if checksum_func is not None:
     msg = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
-    dat = msg[2]
-    values["CHECKSUM"] = checksum_func(0x1e0, None, dat)
+    values["CHECKSUM"] = checksum_func(0x1e0, None, msg[2])
 
   return packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
 
@@ -248,7 +247,10 @@ def create_adrv_messages(packer, CAN, frame):
   return ret
 
 
-def hkg_can_fd_checksum(address: int, sig, d: bytearray) -> int:
+def hkg_can_fd_checksum(address: int, sig, d) -> int:
+  if not isinstance(d, (bytes, bytearray)):
+    return 0
+
   crc = 0
   for i in range(2, len(d)):
     crc = ((crc << 8) ^ CRC16_XMODEM[(crc >> 8) ^ d[i]]) & 0xFFFF
