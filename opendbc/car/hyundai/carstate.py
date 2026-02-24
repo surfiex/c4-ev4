@@ -216,8 +216,8 @@ class CarState(CarStateBase):
     speed_factor = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
+      ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
       cp_a = can_parsers[Bus.pt] # Bus 0 (A-CAN)
-      ret.gasPressed = cp_a.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
       ret.doorOpen = cp_a.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 1
       ret.seatbeltUnlatched = cp_a.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
       ret.leftBlinker = cp.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
@@ -244,8 +244,8 @@ class CarState(CarStateBase):
     ret.standstill = cp.vl["WHEEL_SPEEDS"]["WHL_SpdFLVal"] <= STANDSTILL_THRESHOLD and cp.vl["WHEEL_SPEEDS"]["WHL_SpdFRVal"] <= STANDSTILL_THRESHOLD and \
                      cp.vl["WHEEL_SPEEDS"]["WHL_SpdRLVal"] <= STANDSTILL_THRESHOLD and cp.vl["WHEEL_SPEEDS"]["WHL_SpdRRVal"] <= STANDSTILL_THRESHOLD
 
-    ret.steeringRateDeg = cp_cam.vl["STEERING_SENSORS"]["STEERING_RATE"]
-    ret.steeringAngleDeg = cp_cam.vl["STEERING_SENSORS"]["STEERING_ANGLE"]
+    ret.steeringRateDeg = cp.vl["STEERING_SENSORS"]["STEERING_RATE"]
+    ret.steeringAngleDeg = cp.vl["STEERING_SENSORS"]["STEERING_ANGLE"]
     ret.steeringTorque = cp.vl["MDPS"]["STEERING_COL_TORQUE"]
     ret.steeringTorqueEps = cp.vl["MDPS"]["STEERING_OUT_TORQUE"]
     ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorque) > self.params.STEER_THRESHOLD, 5)
@@ -341,6 +341,8 @@ class CarState(CarStateBase):
 
     if CP.carFingerprint == CAR.KIA_EV4:
       msgs += [
+        ("ACCELERATOR", 100),
+        ("STEERING_SENSORS", 100),
         ("GEAR_SHIFTER", float('nan')),
         ("LFA_BUTTON", float('nan')),
         ("RADAR_TRACK_939", float('nan')),
@@ -369,7 +371,6 @@ class CarState(CarStateBase):
       ("ADRV_0x165", float('nan')),
       ("ADRV_0x380", float('nan')),
       ("ISLA", float('nan')),
-      ("STEERING_SENSORS", 100),
     ]
     for addr in range(933, 965):
       cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))
@@ -377,7 +378,6 @@ class CarState(CarStateBase):
     a_msgs = []
     if CP.carFingerprint == CAR.KIA_EV4:
       a_msgs += [
-        ("ACCELERATOR", 100),
         ("EV4_BODY_1", float('nan')),
         ("EV4_BODY_2", float('nan')),
       ]
