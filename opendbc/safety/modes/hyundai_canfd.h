@@ -268,13 +268,12 @@ static safety_config hyundai_canfd_init(uint16_t param) {
       HYUNDAI_CANFD_LKA_STEERING_ALT_COMMON_TX_MSGS(0, 1)};
 
   // LKA_STEERING + ALT_BUTTONS: use SCC_CONTROL for cancel instead of
-  // CRUISE_BUTTON DIAGNOSTIC: check_relay=false lets camera originals pass
-  // through relay
+  // CRUISE_BUTTON
   static const CanMsg HYUNDAI_CANFD_LKA_STEERING_ALT_BUTTONS_TX_MSGS[] = {
       {0x110, 0, 32,
-       .check_relay = false}, /* LKAS_ALT - diagnostic: let original pass */
+       .check_relay = true}, /* LKAS_ALT - block original */
       {0x362, 0, 32,
-       .check_relay = false}, /* CAM_0x362 - diagnostic: let original pass */
+       .check_relay = true}, /* CAM_0x362 - block original */
       HYUNDAI_CANFD_SCC_CONTROL_COMMON_TX_MSGS(1, false)};
 
   static const CanMsg HYUNDAI_CANFD_LKA_STEERING_STD_ALT_BUTTONS_TX_MSGS[] = {
