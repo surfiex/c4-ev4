@@ -1280,9 +1280,6 @@ FW_VERSIONS = {
     (Ecu.fwdRadar, 0x7d0, None): [
       b'\xf1\x00CT1__               1.00 1.01 99110EZ000          ',
     ],
-    (Ecu.eps, 0x7d4, None): [
-      b'\xf1\x00CT1 MDPS C 1.00 1.01 56300EZ000  2541_CT1kE_CAN101',
-    ],
     (Ecu.hvac, 0x7b3, None): [
       b"\xf1\x00CT1 EV97255-EZ010CONTROL ASS'Y-DATC  1.04.00_R2.0_24.08.01\x00\x00\x00\x00",
     ],

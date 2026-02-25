@@ -653,10 +653,9 @@ def match_fw_to_car_fuzzy(live_fw_versions, vin, offline_fw_versions) -> set[str
       if not any(found_platform_code in expected_platform_codes for found_platform_code in found_platform_codes):
         break
 
-      if ecu[0] in DATE_FW_ECUS:
-        # If ECU can have a FW date, require it to exist
-        # (this excludes candidates in the database without dates)
-        if not len(expected_dates) or not len(found_dates):
+      if ecu[0] in DATE_FW_ECUS and len(expected_dates):
+        # If ECU can have a FW date, require it to exist if it's in the database
+        if not len(found_dates):
           break
 
         # Check any date within range in the database, format is %y%m%d
@@ -714,7 +713,7 @@ HYUNDAI_VIN_REQUEST = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
 HYUNDAI_VERSION_RESPONSE = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER + 0x40])
 
 # Regex patterns for parsing platform code, FW date, and part number from FW versions
-PLATFORM_CODE_FW_PATTERN = re.compile(b'((?<=\x62\xf1[\x00\x10\x91\x88\x87\x97\x81\x82\x7c\x90\xb0]|\x62\x01\x00)[A-Z0-9 ]{2,12})')
+PLATFORM_CODE_FW_PATTERN = re.compile(b'((?<=\xf1[\x00\x10\x91\x88\x87\x97\x81\x82\x7c\x90\xb0]|\x01\x00)[A-Z0-9 ]{2,12})')
 DATE_FW_PATTERN = re.compile(b'(?<=[ -])([0-9]{6}$)')
 PART_NUMBER_FW_PATTERN = re.compile(b'(?<=[0-9][.,][0-9]{2} )([0-9]{5}[-/]?[A-Z][A-Z0-9]{3}[0-9])')
 
