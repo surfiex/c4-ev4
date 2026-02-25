@@ -34,6 +34,13 @@ class CarInterface(CarInterfaceBase):
     lka_steering = 0x50 in fingerprint[cam_can] or 0x110 in fingerprint[cam_can]
     CAN = CanBus(None, fingerprint, lka_steering)
 
+    # EV4 is a special case that might fail FW fingerprinting due to 2025 gateway changes
+    if candidate is None and (0x1cf in fingerprint[0] or 0x1cf in fingerprint[1] or 0x110 in fingerprint[1] or 0x110 in fingerprint[2]):
+      candidate = CAR.KIA_EV4
+
+    if candidate == CAR.KIA_EV4:
+      ret.flags |= HyundaiFlags.CANFD.value
+
     if ret.flags & HyundaiFlags.CANFD:
       # Shared configuration for CAN-FD cars
       ret.alphaLongitudinalAvailable = candidate not in CANFD_UNSUPPORTED_LONGITUDINAL_CAR

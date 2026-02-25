@@ -1277,11 +1277,5 @@ FW_VERSIONS = {
     (Ecu.fwdCamera, 0x7c4, None): [
       b'\xf1\x00CT11.011.031.012551000HKP_CT125_50430099211EZ000',
     ],
-    (Ecu.fwdRadar, 0x7d0, None): [
-      b'\xf1\x00CT1__               1.00 1.01 99110EZ000          ',
-    ],
-    (Ecu.hvac, 0x7b3, None): [
-      b"\xf1\x00CT1 EV97255-EZ010CONTROL ASS'Y-DATC  1.04.00_R2.0_24.08.01\x00\x00\x00\x00",
-    ],
   },
 }

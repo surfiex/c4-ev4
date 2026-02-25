@@ -591,7 +591,7 @@ class CAR(Platforms):
     ],
     CarSpecs(mass=1836, wheelbase=2.7, steerRatio=12.64, tireStiffnessFactor=1.0),
     dbc_dict={Bus.pt: "KIA_EV4_v19", 1: "KIA_EV4_v19"},
-    flags=HyundaiFlags.EV | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.CANFD_LKA_STEERING_ALT | HyundaiFlags.CANFD_ALT_BUTTONS,
+    flags=HyundaiFlags.EV | HyundaiFlags.CANFD | HyundaiFlags.CANFD_LKA_STEERING | HyundaiFlags.CANFD_LKA_STEERING_ALT | HyundaiFlags.CANFD_ALT_BUTTONS,
   )
 
 
