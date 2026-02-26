@@ -148,19 +148,19 @@ class CarInterface(CarInterfaceBase):
       ret.steerActuatorDelay = 0.2
 
     if candidate == CAR.KIA_EV4:
-      #ret.brand = "kia"
-      #ret.flags |= HyundaiFlags.CANFD.value
-      #ret.flags |= HyundaiFlags.EV.value
-      # HAD(HDA2) 사양이라면 아래 플래그가 필수입니다.
-      #ret.flags |= HyundaiFlags.CAN_FD_HDA2.value
-
-      # 제원 설정 (앞서 정리한 값들)
-      #ret.mass = 1836.
-      #ret.wheelbase = 2.7
-      #ret.steerRatio = 13.0
-      #ret.centerToFront = ret.wheelbase * 0.4
       ret.flags |= HyundaiFlags.CANFD_LKA_STEERING.value
+      ret.flags |= HyundaiFlags.CANFD_LKA_STEERING_ALT.value
       ret.flags |= HyundaiFlags.CANFD_ALT_BUTTONS.value # 0x2F0을 쓰는 경우 필수
+
+      # Force update safety params since EV4 isn't caught early enough without full fingerprint
+      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_LKA_STEERING.value
+      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_LKA_STEERING_ALT.value
+      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_ALT_BUTTONS.value
+
+      ret.openpilotLongitudinalControl = True
+      ret.pcmCruise = False
+      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.LONG.value
+      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.EV_GAS.value
 
     # Dashcam cars are missing a test route, or otherwise need validation
     # TODO: Optima Hybrid 2017 uses a different SCC12 checksum
