@@ -68,12 +68,29 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
   ret = []
   if CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
     lkas_msg = "LKAS_ALT" if CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT else "LKAS"
+
     # Send LFA on ECAN only when openpilot has longitudinal control.
-    # When pcmCruise=True, the ADAS ECU is alive and already sends LFA (0x12a) on Bus 1.
-    # Sending LFA simultaneously causes a direct CAN conflict → all ADAS cluster errors.
     if CP.openpilotLongitudinalControl:
       ret.append(packer.make_can_msg("LFA", CAN.ECAN, lfa_values))
-    ret.append(packer.make_can_msg(lkas_msg, CAN.ACAN, lkas_values))
+
+    # EV4 Special: Manually pack LKAS_ALT to ensure CRC and Counter integrity for MITM
+    if CP.carFingerprint == "KIA_EV4" and lkas_msg == "LKAS_ALT":
+      # 1. Start with the packer's best effort based on the expanded DBC
+      _, _, dat_raw, _ = packer.make_can_msg(lkas_msg, 0, lkas_values)
+      dat = bytearray(dat_raw)
+
+      # 2. Recalculate CRC (Bytes 0-1)
+      # hkg_can_fd_checksum expects bytes 2-31 and address
+      crc = hkg_can_fd_checksum(0x110, None, dat)
+      dat[0] = crc & 0xFF
+      dat[1] = (crc >> 8) & 0xFF
+
+      # 3. Queue for ACAN (Bus 0)
+      ret.append([0x110, bytes(dat), CAN.ACAN])
+      # 4. Queue for ECAN (Bus 1) to satisfy ADAS ECU
+      ret.append([0x110, bytes(dat), CAN.ECAN])
+    else:
+      ret.append(packer.make_can_msg(lkas_msg, CAN.ACAN, lkas_values))
   else:
     ret.append(packer.make_can_msg("LFA", CAN.ECAN, lfa_values))
 

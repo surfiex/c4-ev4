@@ -227,6 +227,9 @@ class CarController(CarControllerBase):
     # HDA2 Forwarding: Forward saved messages from camera bus to car bus
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs.items():
+        # EV4: SKIP LKAS_ALT in general forwarding because we send the modified version to both buses in create_steering_messages
+        if self.CP.carFingerprint == CAR.KIA_EV4 and msg_name == "LKAS_ALT":
+          continue
         # ADRV messages and Radar tracks need to reach the ADAS ECU on ECAN (Bus 1)
         # EV4: ADAS ECU expects ALL camera traffic on Bus 1 including LKAS_ALT
         can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
