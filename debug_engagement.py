@@ -40,12 +40,18 @@ def debug_engagement():
         try:
           active = ctrls.active
           state = str(ctrls.state)
-        except Exception:
+        except Exception as e:
           try:
-            active = ctrls.enabled
-            state = str(ctrls.state)
-          except Exception:
-            state = "N/A"
+            active = getattr(ctrls, 'active', getattr(ctrls, 'enabled', False))
+            state = str(getattr(ctrls, 'state', 'N/A'))
+          except Exception as e2:
+            state = f"N/A ({type(e2).__name__})"
+            if not hasattr(debug_engagement, '_printed_keys'):
+              try:
+                print(f"\n[DIAG] controlsState keys: {list(ctrls.to_dict().keys())}")
+              except:
+                print(f"\n[DIAG] controlsState dir: {dir(ctrls)}")
+              debug_engagement._printed_keys = True
 
       status = "ENGAGED" if active else ("READY" if not blockers else "BLOCKED")
 
