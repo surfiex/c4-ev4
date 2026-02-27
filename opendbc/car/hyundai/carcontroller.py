@@ -92,9 +92,7 @@ class CarController(CarControllerBase):
       addr, bus = 0x7d0, self.CAN.ECAN if self.CP.flags & HyundaiFlags.CANFD else 0
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING.value:
         addr, bus = 0x730, self.CAN.ECAN
-      # EV4: we do NOT disable the ADAS ECU, so skip tester present to 0x730
-      if self.car_fingerprint != CAR.KIA_EV4:
-        can_sends.append(make_tester_present_msg(addr, bus, suppress_response=True))
+      can_sends.append(make_tester_present_msg(addr, bus, suppress_response=True))
 
       # for blinkers
       if self.CP.flags & HyundaiFlags.ENABLE_BLINKERS:

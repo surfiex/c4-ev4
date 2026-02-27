@@ -293,6 +293,9 @@ static safety_config hyundai_canfd_init(uint16_t param) {
       {0x200, 1, 8, .check_relay = false},  // ADRV_0x200
       {0x345, 1, 8, .check_relay = false},  // ADRV_0x345
       {0x1DA, 1, 32, .check_relay = false}, // ADRV_0x1da
+      {0x330, 1, 32, .check_relay = false}, // ADRV_0x330
+      {0x32B, 1, 32, .check_relay = false}, // ADRV_0x32b
+      {0x32D, 1, 32, .check_relay = false}, // ADRV_0x32d
   };
 
   static const CanMsg HYUNDAI_CANFD_LFA_STEERING_TX_MSGS[] = {

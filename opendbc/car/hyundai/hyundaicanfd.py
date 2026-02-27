@@ -322,6 +322,31 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     dat[1] = (crc >> 8) & 0xFF
     ret.append([0x345, bytes(dat), CAN.ECAN])
 
+    # 0x330 (816) 5Hz - scene/radar status (counter rate = 10Hz → +2 per 5Hz send)
+    cnt_10hz = (frame // 10) % 256
+    dat = bytearray(32)
+    dat[2] = cnt_10hz
+    dat[3] = 0xf1
+    dat[4] = 0xc8; dat[5] = 0xa0; dat[6] = 0xfc; dat[7] = 0x9e
+    dat[8] = 0xdc; dat[9] = 0x05; dat[10] = 0xdc; dat[11] = 0x05
+    # bytes 12-18 = 0x00
+    dat[19] = 0x5c; dat[20] = 0x0d; dat[21] = 0x70; dat[22] = 0x0f
+    dat[23] = 0xc8; dat[24] = 0xa0
+    # bytes 25-27 = 0x00
+    dat[28] = 0x97; dat[29] = 0x94; dat[30] = 0x04; dat[31] = 0x74
+    crc = hkg_can_fd_checksum(0x330, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    ret.append([0x330, bytes(dat), CAN.ECAN])
+
+    # 0x32b (811) 5Hz - completely static from vehicle log (counter never changes)
+    dat_32b = bytes.fromhex("d4100a0000000080000000000000004000002100000000000000000000000000")
+    ret.append([0x32b, dat_32b, CAN.ECAN])
+
+    # 0x32d (813) 5Hz - completely static from vehicle log (counter never changes)
+    dat_32d = bytes.fromhex("b5a70b0000000080000000000000000000000440040000000000210000000000")
+    ret.append([0x32d, dat_32d, CAN.ECAN])
+
   if frame % 100 == 0:
     # 0x1da (474) 1Hz
     cnt_1hz = (frame // 100) % 256
