@@ -164,14 +164,13 @@ class CarInterface(CarInterfaceBase):
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_LKA_STEERING_ALT.value
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_ALT_BUTTONS.value
 
-      # EV4 longitudinal: We do NOT control SCC. Sending SCC_CONTROL while
-      # ADAS ECU is also active causes CAN bus conflict → ALL cluster ADAS errors.
-      # Use vehicle's native ACC; OP does lateral (steering) only for now.
+      # EV4: Switch to dashcam mode for now.
+      # Any CAN messages from OP (steering, SCC, suppress_lfa) trigger cluster ADAS errors.
+      # In dashcam mode OP logs camera/CAN/GPS data without sending any control messages.
+      # Collected logs will be used to properly understand EV4 CAN architecture for porting.
+      ret.dashcamOnly = True
       ret.openpilotLongitudinalControl = False
       ret.pcmCruise = True
-      # Remove LONG safety flag - OP will NOT send SCC_CONTROL
-      ret.safetyConfigs[-1].safetyParam &= ~HyundaiSafetyFlags.LONG.value
-      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.EV_GAS.value
 
     # Dashcam cars are missing a test route, or otherwise need validation
     # TODO: Optima Hybrid 2017 uses a different SCC12 checksum
