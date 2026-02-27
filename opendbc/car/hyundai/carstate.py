@@ -332,7 +332,8 @@ class CarState(CarStateBase):
       elif addr == 0x1fa: msg_name = "ISLA"
       elif addr == 0x2ba: msg_name = "IFS_0x2ba"
       elif addr == 0x100: msg_name = "ACCELERATOR_BRAKE_ALT"
-      elif 0x230 <= addr <= 0x248: msg_name = f"HBA_0x{addr:03x}"
+      elif 0x230 <= addr <= 0x248:
+        msg_name = "RADAR_0x240" if addr == 0x240 else f"HBA_0x{addr:03x}"
       elif 933 <= addr <= 964: msg_name = f"RADAR_TRACK_{addr}"
 
       if msg_name and msg_name in cp_cam.vl:
@@ -399,7 +400,8 @@ class CarState(CarStateBase):
     ]
     # HBA/ISLA etc
     for addr in range(560, 585):
-        cam_msgs.append((f"HBA_0x{addr:03x}", float('nan')))
+        msg_name = "RADAR_0x240" if addr == 576 else f"HBA_0x{addr:03x}"
+        cam_msgs.append((msg_name, float('nan')))
 
     if CP.carFingerprint == CAR.KIA_EV4:
       cam_msgs.append(("LFA_BUTTON", float('nan')))
