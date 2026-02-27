@@ -267,15 +267,16 @@ def create_adrv_messages_ev4(packer, CAN, frame):
   # the ADAS Driving ECU to do longitudinal control
   ret = []
 
-  # ADRV_0x51
+  # ADRV_0x51 - 100Hz heartbeat on ACAN
   values = {}
   ret.append(packer.make_can_msg("ADRV_0x51", CAN.ACAN, values))
 
-  # ADRV_0x160 - send custom byte struct
+  # ADRV_0x160 (50Hz) - counter increments +1 per send
   if frame % 2 == 0:
-    # 0x160 (352)
+    cnt_160 = (frame // 2) % 256
     values = {}
     dat = bytearray(packer.make_can_msg("ADRV_0x160", CAN.ECAN, values)[1])
+    dat[2] = cnt_160    # COUNTER byte
     dat[4] = 0x80
     dat[8] = 0xff
     dat[9] = 0xfc
@@ -288,9 +289,12 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     ret.append([0x160, bytes(dat), CAN.ECAN])
 
   if frame % 5 == 0:
-    # 0x1ea (490)
+    cnt_20hz = (frame // 5) % 256
+
+    # 0x1ea (490) 20Hz
     values = {}
     dat = bytearray(packer.make_can_msg("ADRV_0x1ea", CAN.ECAN, values)[1])
+    dat[2] = cnt_20hz   # COUNTER byte
     dat[3] = 0x08
     dat[15] = 0xff
     dat[29] = 0x0f
@@ -300,9 +304,10 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     dat[1] = (crc >> 8) & 0xFF
     ret.append([0x1ea, bytes(dat), CAN.ECAN])
 
-    # 0x200 (512)
+    # 0x200 (512) 20Hz
     values = {}
     dat = bytearray(packer.make_can_msg("ADRV_0x200", CAN.ECAN, values)[1])
+    dat[2] = cnt_20hz   # COUNTER byte
     dat[3] = 0x14
     dat[4] = 0x80
     dat[5] = 0x2a
@@ -312,9 +317,11 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     ret.append([0x200, bytes(dat), CAN.ECAN])
 
   if frame % 20 == 0:
-    # 0x345 (837)
+    # 0x345 (837) 5Hz
+    cnt_5hz = (frame // 20) % 256
     values = {}
     dat = bytearray(packer.make_can_msg("ADRV_0x345", CAN.ECAN, values)[1])
+    dat[2] = cnt_5hz    # COUNTER byte
     dat[3] = 0x15
     dat[5] = 0xd6
     dat[6] = 0x01
@@ -324,9 +331,11 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     ret.append([0x345, bytes(dat), CAN.ECAN])
 
   if frame % 100 == 0:
-    # 0x1da (474)
+    # 0x1da (474) 1Hz
+    cnt_1hz = (frame // 100) % 256
     values = {}
     dat = bytearray(packer.make_can_msg("ADRV_0x1da", CAN.ECAN, values)[1])
+    dat[2] = cnt_1hz    # COUNTER byte
     dat[3] = 0x67
     dat[5] = 0x31
     crc = hkg_can_fd_checksum(0x1da, None, dat)
