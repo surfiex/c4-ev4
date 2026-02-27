@@ -330,7 +330,7 @@ class CarState(CarStateBase):
       elif addr == 506: msg_name = "ISLA"
       elif addr == 698: msg_name = "IFS_0x2ba"
       elif addr == 752: msg_name = "ID752"
-      elif addr == 864: msg_name = "ID864"
+      elif addr == 864: msg_name = "LFA_BUTTON"
       elif addr == 865: msg_name = "ID865"
       elif addr == 866: msg_name = "CAM_0x362"
       elif addr == 867: msg_name = "CAM_0x363"
@@ -339,7 +339,11 @@ class CarState(CarStateBase):
       elif addr == 905: msg_name = "ADRV_0x389"
       elif addr == 917: msg_name = "ID917"
       elif addr == 928: msg_name = "ID928"
-      elif addr in range(976, 981): msg_name = f"ID{addr}"
+      elif addr == 976: msg_name = "EV4_BODY_1"
+      elif addr == 977: msg_name = "ID977"
+      elif addr == 978: msg_name = "ID978"
+      elif addr == 979: msg_name = "EV4_BODY_2"
+      elif addr == 980: msg_name = "ID980"
       elif addr == 1280: msg_name = "ID1280"
       elif 560 <= addr <= 584:
         msg_name = "RADAR_0x240" if addr == 576 else f"HBA_0x{addr:03x}"
@@ -411,10 +415,10 @@ class CarState(CarStateBase):
       ("ID865", float('nan')),
       ("ID917", float('nan')),
       ("ID928", float('nan')),
-      ("ID976", float('nan')),
+      ("EV4_BODY_1", float('nan')),
       ("ID977", float('nan')),
       ("ID978", float('nan')),
-      ("ID979", float('nan')),
+      ("EV4_BODY_2", float('nan')),
       ("ID980", float('nan')),
       ("ID1280", float('nan')),
     ]
