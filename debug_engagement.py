@@ -3,7 +3,7 @@ import cereal.messaging as messaging
 
 def debug_engagement():
   sm = messaging.SubMaster(['carState', 'carParams', 'controlsState'])
-  print("Starting Engagement Debugger for Kia EV4 (v2.4)...")
+  print("Starting Engagement Debugger for Kia EV4 (v2.5)...")
   print("Press Ctrl+C to stop.\n")
 
   last_state = None
@@ -15,7 +15,9 @@ def debug_engagement():
       # Status logic
       status = "UNKNOWN"
       state = "UNKNOWN"
-      ctrls = sm['controlsState']
+      ctrls = None
+      if sm.updated['controlsState'] or sm.alive['controlsState']:
+        ctrls = sm['controlsState']
 
       # Blockers logic (D: Door, S: Seatbelt, G: Gas, B: Brake, C: Cruise)
       raw = f"D:{int(cs.doorOpen)} S:{int(cs.seatbeltUnlatched)} G:{int(cs.gasPressed)} B:{int(cs.brakePressed)} C:{int(cs.cruiseState.available)}"
@@ -31,14 +33,19 @@ def debug_engagement():
         blockers.append("Seatbelt")
       if not cs.cruiseState.available:
         blockers.append("CruiseOff")
-      if str(cs.gearShifter) != "drive":
-        blockers.append(f"Gear:{cs.gearShifter}")
 
-      if sm.updated['controlsState'] or sm.alive['controlsState']:
+      # Explicit Gear Check
+      gear_str = str(cs.gearShifter)
+      if "drive" not in gear_str.lower():
+        blockers.append(f"Gear:{gear_str}")
+
+      if ctrls:
         try:
           d = ctrls.to_dict()
           active = d.get('active', d.get('enabled', False))
-          state = str(d.get('state', 'N/A'))
+          # Some versions use different field names
+          curr_state = d.get('state', d.get('activeState', 'N/A'))
+          state = str(curr_state)
 
           if active:
             status = "ENGAGED"
@@ -55,8 +62,11 @@ def debug_engagement():
       if last_state != state:
         if last_state is not None:
           print(f"\n[EVENT] State: {last_state} -> {state}")
-          if last_state == "N/A":
-            print(f"[DIAG] controlsState keys: {list(ctrls.to_dict().keys())}")
+          if "N/A" in state or "UNKNOWN" in state:
+            if ctrls:
+              print(f"[DIAG] controlsState available. Keys: {list(ctrls.to_dict().keys())}")
+            else:
+              print(f"[DIAG] controlsState NOT available (timeout/not alive)")
         last_state = state
 
       # Button detection - show ALL buttons
