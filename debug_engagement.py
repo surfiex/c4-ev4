@@ -32,15 +32,20 @@ def debug_engagement():
       if cs.steerFaultPermanent:
         blockers.append("Steer Fault (Perm)")
 
-      status = "BLOCKED" if blockers else "READY"
+      # Engagement Status
+      active = sm['controlsState'].active
+      state = sm['controlsState'].state
+
+      status = "ENGAGED" if active else ("READY" if not blockers else "BLOCKED")
 
       print(
-        f"\rStatus: {status} | Blockers: {', '.join(blockers) if blockers else 'None':<50} | Gear: {str(cs.gearShifter):<7} | Speed: {cs.vEgo * 3.6:5.1f}km/h",
+        f"\rStatus: {status:<8} | State: {str(state):<10} | Blockers: {', '.join(blockers) if blockers else 'None':<40} | Gear: {str(cs.gearShifter):<7} | Speed: {cs.vEgo * 3.6:5.1f}km/h",
         end="",
       )
 
       for event in cs.buttonEvents:
-        print(f"\nButton Event: {event.type} Presed: {event.pressed}")
+        if event.pressed:
+          print(f"\n[BUTTON] {event.type} Pressed")
 
 
 if __name__ == "__main__":
