@@ -164,11 +164,11 @@ class CarInterface(CarInterfaceBase):
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_LKA_STEERING_ALT.value
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_ALT_BUTTONS.value
 
-      # EV4: Switch to dashcam mode for now.
-      # Any CAN messages from OP (steering, SCC, suppress_lfa) trigger cluster ADAS errors.
-      # In dashcam mode OP logs camera/CAN/GPS data without sending any control messages.
-      # Collected logs will be used to properly understand EV4 CAN architecture for porting.
-      ret.dashcamOnly = True
+      # EV4: lateral-only control.
+      # - openpilotLongitudinalControl=False: OP does NOT send SCC_CONTROL on Bus 1
+      # - pcmCruise=True: ADAS ECU remains active and handles ACC/SCC as normal
+      # - LFA is NOT sent on Bus 1 (fixed in create_steering_messages) to avoid ECAN conflict
+      # - Only LKAS_ALT on Bus 0 (ACAN) is sent for steering override - true MITM approach
       ret.openpilotLongitudinalControl = False
       ret.pcmCruise = True
 

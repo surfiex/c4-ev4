@@ -58,7 +58,10 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque)
   ret = []
   if CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
     lkas_msg = "LKAS_ALT" if CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT else "LKAS"
-    if CP.openpilotLongitudinalControl or CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
+    # Send LFA on ECAN only when openpilot has longitudinal control.
+    # When pcmCruise=True, the ADAS ECU is alive and already sends LFA (0x12a) on Bus 1.
+    # Sending LFA simultaneously causes a direct CAN conflict → all ADAS cluster errors.
+    if CP.openpilotLongitudinalControl:
       ret.append(packer.make_can_msg("LFA", CAN.ECAN, lfa_values))
     ret.append(packer.make_can_msg(lkas_msg, CAN.ACAN, lkas_values))
   else:
