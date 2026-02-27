@@ -220,7 +220,7 @@ class CarState(CarStateBase):
       ret.seatbeltUnlatched = cp.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 1
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
-      gear = cp.vl["GEAR_SHIFTER"]["GEAR"]
+      gear = cp.vl["ACCELERATOR"]["GEAR"]
     else:
       if self.CP.flags & (HyundaiFlags.EV | HyundaiFlags.HYBRID):
         ret.gasPressed = cp.vl[self.accelerator_msg_canfd]["ACCELERATOR_PEDAL"] > 1e-5
