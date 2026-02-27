@@ -36,10 +36,10 @@ class CanBus(CanBusBase):
     return self._cam
 
 
-def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque):
+def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque, lkas_alt_msg=None):
   common_values = {
-    "LKA_MODE": 2,
-    "LKA_ICON": 2 if enabled else 1,
+    "LKA_MODE": 2 if lat_active else (lkas_alt_msg["LKA_MODE"] if lkas_alt_msg else 0),
+    "LKA_ICON": 2 if enabled else (lkas_alt_msg["LKA_ICON"] if lkas_alt_msg else 1),
     "TORQUE_REQUEST": apply_torque,
     "LKA_ASSIST": 0,
     "STEER_REQ": 1 if lat_active else 0,
@@ -52,7 +52,15 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque)
   lkas_values = copy.copy(common_values)
   # Real camera LKAS_ALT has LKA_AVAILABLE=3 (0b11, byte3 bits 3-4 in 0x18).
   # Sending 0 tells ADAS ECU "camera LKA unavailable" → all camera ADAS cluster errors.
-  lkas_values["LKA_AVAILABLE"] = 3
+  # For True MITM, we use camera's original LKA_AVAILABLE if available.
+  lkas_values["LKA_AVAILABLE"] = lkas_alt_msg["LKA_AVAILABLE"] if lkas_alt_msg else 3
+
+  # True MITM: Preserve all other bytes from original camera message if it exists
+  if lkas_alt_msg:
+    for i in range(32):
+      msg_key = f"BYTE{i}"
+      if msg_key in lkas_alt_msg and msg_key not in lkas_values:
+        lkas_values[msg_key] = lkas_alt_msg[msg_key]
 
   lfa_values = copy.copy(common_values)
   lfa_values["NEW_SIGNAL_1"] = 0

@@ -56,7 +56,7 @@ class CarState(CarStateBase):
                                  "CRUISE_BUTTONS"
     self.is_metric = False
     self.buttons_counter = 0
-
+    self.lkas_alt_msg = {}
     self.cruise_info = {}
 
     # On some cars, CLU15->CF_Clu_VehicleSpeed can oscillate faster than the dash updates. Sample at 5 Hz
@@ -307,6 +307,10 @@ class CarState(CarStateBase):
     ret.accFaulted = cp.vl["TCS"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
 
     if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
+      # EV4: Capture full LKAS_ALT for true MITM
+      if self.CP.carFingerprint == CAR.KIA_EV4:
+        self.lkas_alt_msg = copy.copy(cp_cam.vl["LKAS_ALT"])
+
       self.lfa_block_msg = copy.copy(cp_cam.vl["CAM_0x362"] if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT
                                           else cp_cam.vl["CAM_0x2a4"])
 
@@ -371,6 +375,7 @@ class CarState(CarStateBase):
       ("CAM_0x363", float('nan')),
       ("CAM_0x364", float('nan')),
       ("CAM_0x2a4", float('nan')),
+      ("LKAS_ALT", float('nan')),
       ("ADRV_0x389", float('nan')),
       ("ADRV_0x165", float('nan')),
       ("ADRV_0x380", float('nan')),
