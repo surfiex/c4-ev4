@@ -50,7 +50,9 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque)
   }
 
   lkas_values = copy.copy(common_values)
-  lkas_values["LKA_AVAILABLE"] = 0
+  # Real camera LKAS_ALT has LKA_AVAILABLE=3 (0b11, byte3 bits 3-4 in 0x18).
+  # Sending 0 tells ADAS ECU "camera LKA unavailable" → all camera ADAS cluster errors.
+  lkas_values["LKA_AVAILABLE"] = 3
 
   lfa_values = copy.copy(common_values)
   lfa_values["NEW_SIGNAL_1"] = 0
