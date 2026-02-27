@@ -92,7 +92,9 @@ class CarController(CarControllerBase):
       addr, bus = 0x7d0, self.CAN.ECAN if self.CP.flags & HyundaiFlags.CANFD else 0
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING.value:
         addr, bus = 0x730, self.CAN.ECAN
-      can_sends.append(make_tester_present_msg(addr, bus, suppress_response=True))
+      # EV4: Do not disable ADAS ECU, so do not send tester present
+      if self.car_fingerprint != CAR.KIA_EV4:
+        can_sends.append(make_tester_present_msg(addr, bus, suppress_response=True))
 
       # for blinkers
       if self.CP.flags & HyundaiFlags.ENABLE_BLINKERS:
@@ -184,9 +186,7 @@ class CarController(CarControllerBase):
 
     if self.CP.openpilotLongitudinalControl:
       if lka_steering:
-        if self.CP.carFingerprint == CAR.KIA_EV4:
-          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
-        else:
+        if self.CP.carFingerprint != CAR.KIA_EV4:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
       else:
         can_sends.extend(hyundaicanfd.create_fca_warning_light(self.packer, self.CAN, self.frame))
@@ -197,9 +197,7 @@ class CarController(CarControllerBase):
     else:
       # HDA2 needs ADRV heartbeats even for lateral-only
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
-        if self.CP.carFingerprint == CAR.KIA_EV4:
-          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
-        else:
+        if self.CP.carFingerprint != CAR.KIA_EV4:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
 
       # button presses

@@ -186,7 +186,10 @@ class CarInterface(CarInterfaceBase):
       addr, bus = 0x7d0, CanBus(CP).ECAN if CP.flags & HyundaiFlags.CANFD else 0
       if CP.flags & HyundaiFlags.CANFD_LKA_STEERING.value:
         addr, bus = 0x730, CanBus(CP).ECAN
-      disable_ecu(can_recv, can_send, bus=bus, addr=addr, com_cont_req=communication_control)
+      # EV4: Do not disable ADAS ECU. Doing so cuts off all essential CAN messages.
+      from opendbc.car.hyundai.values import CAR as HyundaiCAR
+      if CP.carFingerprint != HyundaiCAR.KIA_EV4:
+        disable_ecu(can_recv, can_send, bus=bus, addr=addr, com_cont_req=communication_control)
 
     # for blinkers
     if CP.flags & HyundaiFlags.ENABLE_BLINKERS:
