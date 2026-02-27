@@ -224,7 +224,7 @@ class CarController(CarControllerBase):
               can_sends.append(hyundaicanfd.create_buttons(self.packer, self.CP, self.CAN, CS.buttons_counter + 1, Buttons.RES_ACCEL))
             self.last_button_frame = self.frame
 
-    # HDA2 Forwarding: Forward saved messages from camera bus to car bus
+    # HDA2 Forwarding: Forward saved messages between camera bus and car bus
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs:
         if self.CP.carFingerprint == CAR.KIA_EV4:
@@ -239,5 +239,11 @@ class CarController(CarControllerBase):
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
         else:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
+
+      if self.CP.carFingerprint == CAR.KIA_EV4:
+        for msg_name, msg_values in CS.car_to_cam_forward_msgs:
+          # Forward messages from car bus (1) to camera bus (2)
+          # This allows the ADAS ECU to see buttons, pedals, gear, etc.
+          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.CAM, msg_values))
 
     return can_sends

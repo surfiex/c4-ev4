@@ -33,18 +33,21 @@ def debug_engagement():
         blockers.append("Steer Fault (Perm)")
 
       # Engagement Status
-      try:
-        # Try common field names for engagement status
-        active = getattr(sm['controlsState'], 'active', getattr(sm['controlsState'], 'enabled', False))
-        state = str(sm['controlsState'].state)
-      except Exception:
-        active = False
-        state = "UNKNOWN"
+      active = False
+      state = "UNKNOWN"
+      if sm.updated['controlsState'] or sm.alive['controlsState']:
+        cs_msg = sm['controlsState']
+        try:
+          # Try various possible field names for engagement
+          active = getattr(cs_msg, 'active', getattr(cs_msg, 'enabled', False))
+          state = str(cs_msg.state)
+        except Exception as e:
+          state = f"ERR:{type(e).__name__}"
 
       status = "ENGAGED" if active else ("READY" if not blockers else "BLOCKED")
 
       print(
-        f"\rStatus: {status:<8} | State: {state:<10} | Blockers: {', '.join(blockers) if blockers else 'None':<40} | Gear: {str(cs.gearShifter):<7} | Speed: {cs.vEgo * 3.6:5.1f}km/h",
+        f"\rStatus: {status:<8} | State: {state:<12} | Blockers: {', '.join(blockers) if blockers else 'None':<38} | Gear: {str(cs.gearShifter):<7} | Speed: {cs.vEgo * 3.6:5.1f}km/h",
         end="",
       )
 

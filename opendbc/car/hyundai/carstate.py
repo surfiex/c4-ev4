@@ -314,8 +314,11 @@ class CarState(CarStateBase):
                                           else cp_cam.vl["CAM_0x2a4"])
 
     # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus (Bus 0) and ECAN (Bus 1)
+    # AND messages from car bus to be forwarded to camera bus (Bus 2)
     # Using vl_all to ensure we forward every message exactly as received without duplicates
     self.hda2_forward_msgs = []
+    self.car_to_cam_forward_msgs = []
+
     # Include all ADRV/HDA2 IDs found on Bus 2 (Camera Bus) that need to be forwarded to Bus 0 and Bus 1
     forward_ids = [81, 256, 272, 282, 298, 352, 357, 416, 437, 474, 480, 490, 506, 512, 698, 752, 837, 864, 865, 866, 867, 868, 896, 905, 917, 928, 976, 977, 978, 979, 980, 1280] + \
                   list(range(560, 585)) + list(range(933, 965))
@@ -363,6 +366,25 @@ class CarState(CarStateBase):
         if sigs:
           for i in range(len(vl_all_msg[sigs[0]])):
             self.hda2_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
+
+    # Car -> Camera Bus (1 -> 2)
+    car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426]
+    for addr in car_to_cam_ids:
+      msg_name = None
+      if addr == 53: msg_name = "ACCELERATOR"
+      elif addr == 160: msg_name = "WHEEL_SPEEDS"
+      elif addr == 234: msg_name = "MDPS"
+      elif addr == 293: msg_name = "STEERING_SENSORS"
+      elif addr == 304: msg_name = "GEAR_SHIFTER"
+      elif addr == 373: msg_name = "TCS"
+      elif addr == 426: msg_name = "CRUISE_BUTTONS_ALT"
+
+      if msg_name and msg_name in cp.vl_all:
+        vl_all_msg = cp.vl_all[msg_name]
+        sigs = list(vl_all_msg.keys())
+        if sigs:
+          for i in range(len(vl_all_msg[sigs[0]])):
+            self.car_to_cam_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
     lda_btn_type = ButtonType.accelCruise if self.CP.carFingerprint == CAR.KIA_EV4 else ButtonType.lkas
     ret.buttonEvents = [*create_button_events(self.cruise_buttons[-1], prev_cruise_buttons, BUTTONS_DICT),
