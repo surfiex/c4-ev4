@@ -316,19 +316,28 @@ class CarState(CarStateBase):
     # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus (Bus 0) and ECAN (Bus 1)
     # Using vl_all to ensure we forward every message exactly as received without duplicates
     self.hda2_forward_msgs = []
-    # Include all 80 IDs found on Bus 2 (Camera Bus) in the fingerprint
-    forward_ids = [256, 272, 282, 357, 437, 506, 698, 752, 864, 865, 866, 867, 868, 896, 905, 917, 928, 976, 977, 978, 979, 980, 1280] + \
+    # Include all ADRV/HDA2 IDs found on Bus 2 (Camera Bus) that need to be forwarded to Bus 0 and Bus 1
+    forward_ids = [81, 256, 272, 282, 298, 352, 357, 416, 437, 474, 480, 490, 506, 512, 698, 752, 837, 864, 865, 866, 867, 868, 896, 905, 917, 928, 976, 977, 978, 979, 980, 1280] + \
                   list(range(560, 585)) + list(range(933, 965))
     for addr in forward_ids:
       msg_name = None
-      if addr == 256: msg_name = "ACCELERATOR_BRAKE_ALT"
+      if addr == 81: msg_name = "ADRV_0x51"
+      elif addr == 256: msg_name = "ACCELERATOR_BRAKE_ALT"
       elif addr == 272: continue  # LKAS_ALT is handled manually in CarController
       elif addr == 282: msg_name = "FR_CMR_01_10ms"
+      elif addr == 298: msg_name = "LFA"
+      elif addr == 352: msg_name = "ADRV_0x160"
       elif addr == 357: msg_name = "ADRV_0x165"
+      elif addr == 416: msg_name = "SCC_CONTROL"
       elif addr == 437: msg_name = "CAMERA_0x1b5"
+      elif addr == 474: msg_name = "ADRV_0x1da"
+      elif addr == 480: msg_name = "LFAHDA_CLUSTER"
+      elif addr == 490: msg_name = "ADRV_0x1ea"
       elif addr == 506: msg_name = "ISLA"
+      elif addr == 512: msg_name = "ADRV_0x200"
       elif addr == 698: msg_name = "IFS_0x2ba"
       elif addr == 752: msg_name = "ID752"
+      elif addr == 837: msg_name = "ADRV_0x345"
       elif addr == 864: msg_name = "LFA_BUTTON"
       elif addr == 865: msg_name = "ID865"
       elif addr == 866: msg_name = "CAM_0x362"
@@ -404,7 +413,15 @@ class CarState(CarStateBase):
       ("CAM_0x363", float('nan')),
       ("CAM_0x364", float('nan')),
       ("CAM_0x2a4", float('nan')),
-      ("LKAS_ALT", float('nan')),
+      ("ADRV_0x51", float('nan')),
+      ("LFA", float('nan')),
+      ("ADRV_0x160", float('nan')),
+      ("SCC_CONTROL", float('nan')),
+      ("ADRV_0x1da", float('nan')),
+      ("LFAHDA_CLUSTER", float('nan')),
+      ("ADRV_0x1ea", float('nan')),
+      ("ADRV_0x200", float('nan')),
+      ("ADRV_0x345", float('nan')),
       ("ADRV_0x389", float('nan')),
       ("ADRV_0x165", float('nan')),
       ("ADRV_0x380", float('nan')),
