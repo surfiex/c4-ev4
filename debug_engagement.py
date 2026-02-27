@@ -3,65 +3,66 @@ import cereal.messaging as messaging
 
 def debug_engagement():
   sm = messaging.SubMaster(['carState', 'carParams', 'controlsState'])
-  print("Starting Engagement Debugger for Kia EV4 (v2.3)...")
+  print("Starting Engagement Debugger for Kia EV4 (v2.4)...")
   print("Press Ctrl+C to stop.\n")
 
+  last_state = None
   while True:
     sm.update(100)
     if sm.updated['carState']:
       cs = sm['carState']
 
-      # Engagement Blockers Check
+      # Status logic
+      status = "UNKNOWN"
+      state = "UNKNOWN"
+      ctrls = sm['controlsState']
+
+      # Blockers logic (D: Door, S: Seatbelt, G: Gas, B: Brake, C: Cruise)
+      raw = f"D:{int(cs.doorOpen)} S:{int(cs.seatbeltUnlatched)} G:{int(cs.gasPressed)} B:{int(cs.brakePressed)} C:{int(cs.cruiseState.available)}"
+
       blockers = []
       if cs.gasPressed:
-        blockers.append("Gas Pressed")
+        blockers.append("Gas")
       if cs.brakePressed:
-        blockers.append("Brake Pressed")
+        blockers.append("Brake")
       if cs.doorOpen:
-        blockers.append("Door Open")
+        blockers.append("Door")
       if cs.seatbeltUnlatched:
-        blockers.append("Seatbelt Unlatched")
+        blockers.append("Seatbelt")
       if not cs.cruiseState.available:
-        blockers.append("Cruise Not Available")
+        blockers.append("CruiseOff")
       if str(cs.gearShifter) != "drive":
-        blockers.append(f"Not in Drive ({cs.gearShifter})")
-      if cs.steerFaultTemporary:
-        blockers.append("Steer Fault (Temp)")
-      if cs.steerFaultPermanent:
-        blockers.append("Steer Fault (Perm)")
+        blockers.append(f"Gear:{cs.gearShifter}")
 
-      # Engagement Status
-      active = False
-      state = "UNKNOWN"
       if sm.updated['controlsState'] or sm.alive['controlsState']:
-        ctrls = sm['controlsState']
         try:
           d = ctrls.to_dict()
           active = d.get('active', d.get('enabled', False))
           state = str(d.get('state', 'N/A'))
+
+          if active:
+            status = "ENGAGED"
+          elif not blockers:
+            status = "READY"
+          else:
+            status = "BLOCKED"
         except Exception as e:
           state = f"ERR:{type(e).__name__}"
 
-      status = "ENGAGED" if active else ("READY" if not blockers else "BLOCKED")
-
-      # Raw signals
-      raw = f"D:{int(cs.doorOpen)} S:{int(cs.seatbeltUnlatched)} G:{int(cs.gasPressed)} B:{int(cs.brakePressed)} C:{int(cs.cruiseState.available)}"
-
       # Print line
-      print(f"\r{status:<10} | {state:<12} | {raw} | Blockers: {', '.join(blockers) if blockers else 'None':<25} | {cs.vEgo * 3.6:5.1f}km/h", end="")
+      print(f"\r{status:<10} | {state:<15} | {raw} | Blockers: {', '.join(blockers) if blockers else 'None':<25} | {cs.vEgo * 3.6:5.1f}km/h", end="")
 
-      # Event logging
-      if not hasattr(debug_engagement, 'last_state'):
-        debug_engagement.last_state = None
-      if debug_engagement.last_state != state:
-        if debug_engagement.last_state is not None:
-          print(f"\n[EVENT] State: {debug_engagement.last_state} -> {state}")
-        debug_engagement.last_state = state
+      if last_state != state:
+        if last_state is not None:
+          print(f"\n[EVENT] State: {last_state} -> {state}")
+          if last_state == "N/A":
+            print(f"[DIAG] controlsState keys: {list(ctrls.to_dict().keys())}")
+        last_state = state
 
-      # Show all buttons that are currently pressed
-      for event in cs.buttonEvents:
-        if event.pressed:
-          print(f"\n[BUTTON] {event.type} Pressed")
+      # Button detection - show ALL buttons
+      for b in cs.buttonEvents:
+        if b.pressed:
+          print(f"\n[BUTTON] {b.type} (val: {int(b.pressed)}) | PCM: {cs.cruiseState.enabled}")
 
 
 if __name__ == "__main__":
