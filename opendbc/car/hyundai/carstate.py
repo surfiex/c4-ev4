@@ -327,8 +327,12 @@ class CarState(CarStateBase):
       elif addr == 0x364: msg_name = "CAM_0x364"
       elif addr == 0x380: msg_name = "ADRV_0x380"
       elif addr == 0x389: msg_name = "ADRV_0x389"
-      elif addr == 0x100: msg_name = "ISLA" # Assume ISLA for 0x100
-      elif 0x230 <= addr <= 0x248: msg_name = f"HBA_0x{addr:03x}" # Placeholder names
+      elif addr == 0x11a: msg_name = "DAW_HBA"
+      elif addr == 0x1b5: msg_name = "CAMERA_0x1b5"
+      elif addr == 0x1fa: msg_name = "ISLA"
+      elif addr == 0x2ba: msg_name = "IFS_0x2ba"
+      elif addr == 0x100: msg_name = "ACCELERATOR_BRAKE_ALT"
+      elif 0x230 <= addr <= 0x248: msg_name = f"HBA_0x{addr:03x}"
       elif 933 <= addr <= 964: msg_name = f"RADAR_TRACK_{addr}"
 
       if msg_name and msg_name in cp_cam.vl:
@@ -388,11 +392,14 @@ class CarState(CarStateBase):
       ("ADRV_0x165", float('nan')),
       ("ADRV_0x380", float('nan')),
       ("ISLA", float('nan')),
-      ("0x100", float('nan')), # Catch-all if names differ
+      ("ACCELERATOR_BRAKE_ALT", float('nan')),
+      ("DAW_HBA", float('nan')),
+      ("CAMERA_0x1b5", float('nan')),
+      ("IFS_0x2ba", float('nan')),
     ]
     # HBA/ISLA etc
-    for addr in range(0x230, 0x249):
-        cam_msgs.append((f"0x{addr:03x}", float('nan')))
+    for addr in range(560, 585):
+        cam_msgs.append((f"HBA_0x{addr:03x}", float('nan')))
 
     if CP.carFingerprint == CAR.KIA_EV4:
       cam_msgs.append(("LFA_BUTTON", float('nan')))
