@@ -224,20 +224,20 @@ class CarController(CarControllerBase):
               can_sends.append(hyundaicanfd.create_buttons(self.packer, self.CP, self.CAN, CS.buttons_counter + 1, Buttons.RES_ACCEL))
             self.last_button_frame = self.frame
 
-  # HDA2 Forwarding: Forward saved messages from camera bus to car bus
-  if lka_steering:
-    for msg_name, msg_values in CS.hda2_forward_msgs:
-      if self.CP.carFingerprint == CAR.KIA_EV4:
-        # Forward to Bus 0 (ACAN) - Steering/ESC Bus
-        can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
+    # HDA2 Forwarding: Forward saved messages from camera bus to car bus
+    if lka_steering:
+      for msg_name, msg_values in CS.hda2_forward_msgs:
+        if self.CP.carFingerprint == CAR.KIA_EV4:
+          # Forward to Bus 0 (ACAN) - Steering/ESC Bus
+          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
 
-        # Forward to Bus 1 (ECAN) - ADAS ECU/Cluster Bus
-        # Conflict check: ADRV_0x165 (ID 357) is 24 bytes on ECAN but 16 bytes on Camera bus.
-        if msg_name == "ADRV_0x165":
-          continue
+          # Forward to Bus 1 (ECAN) - ADAS ECU/Cluster Bus
+          # Conflict check: ADRV_0x165 (ID 357) is 24 bytes on ECAN but 16 bytes on Camera bus.
+          if msg_name == "ADRV_0x165":
+            continue
 
-        can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
-      else:
-        can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
+          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
+        else:
+          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 
-  return can_sends
+    return can_sends
