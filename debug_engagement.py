@@ -36,13 +36,17 @@ def debug_engagement():
       active = False
       state = "UNKNOWN"
       if sm.updated['controlsState'] or sm.alive['controlsState']:
-        cs_msg = sm['controlsState']
+        ctrls = sm['controlsState']
         try:
-          # Try various possible field names for engagement
-          active = getattr(cs_msg, 'active', getattr(cs_msg, 'enabled', False))
-          state = str(cs_msg.state)
+          # In some OP versions, this is 'active' or 'enabled'
+          active = getattr(ctrls, 'active', getattr(ctrls, 'enabled', False))
+          state = str(getattr(ctrls, 'state', 'N/A'))
         except Exception as e:
           state = f"ERR:{type(e).__name__}"
+          # Print available attributes once if we error
+          if not hasattr(debug_engagement, '_printed_attrs'):
+            print(f"\n[DIAG] controlsState attrs: {dir(ctrls)}")
+            debug_engagement._printed_attrs = True
 
       status = "ENGAGED" if active else ("READY" if not blockers else "BLOCKED")
 
@@ -51,6 +55,7 @@ def debug_engagement():
         end="",
       )
 
+      # Show all buttons that are currently pressed
       for event in cs.buttonEvents:
         if event.pressed:
           print(f"\n[BUTTON] {event.type} Pressed")
