@@ -314,16 +314,24 @@ class CarState(CarStateBase):
       self.lfa_block_msg = copy.copy(cp_cam.vl["CAM_0x362"] if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT
                                           else cp_cam.vl["CAM_0x2a4"])
 
-    # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus
+    # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus (Bus 0) and ECAN (Bus 1)
     self.hda2_forward_msgs = {}
-    for addr in [905, 357, 896, 866, 867, 868] + list(range(933, 965)):
-      msg_name = f"RADAR_TRACK_{addr}" if addr >= 933 else (
-        "ADRV_0x389" if addr == 905 else (
-        "ADRV_0x165" if addr == 357 else (
-        "ADRV_0x380" if addr == 896 else (
-        "CAM_0x362" if addr == 866 else (
-        "CAM_0x363" if addr == 867 else "CAM_0x364")))))
-      if msg_name in cp_cam.vl:
+    # Include LKAS_ALT, ADRV messages, Radar tracks, and ISLA/HBA messages
+    forward_ids = [0x110, 0x165, 0x362, 0x363, 0x364, 0x380, 0x389, 0x100] + list(range(0x230, 0x249)) + list(range(933, 965))
+    for addr in forward_ids:
+      msg_name = None
+      if addr == 0x110: msg_name = "LKAS_ALT"
+      elif addr == 0x165: msg_name = "ADRV_0x165"
+      elif addr == 0x362: msg_name = "CAM_0x362"
+      elif addr == 0x363: msg_name = "CAM_0x363"
+      elif addr == 0x364: msg_name = "CAM_0x364"
+      elif addr == 0x380: msg_name = "ADRV_0x380"
+      elif addr == 0x389: msg_name = "ADRV_0x389"
+      elif addr == 0x100: msg_name = "ISLA" # Assume ISLA for 0x100
+      elif 0x230 <= addr <= 0x248: msg_name = f"HBA_0x{addr:03x}" # Placeholder names
+      elif 933 <= addr <= 964: msg_name = f"RADAR_TRACK_{addr}"
+
+      if msg_name and msg_name in cp_cam.vl:
         self.hda2_forward_msgs[msg_name] = copy.copy(cp_cam.vl[msg_name])
 
     lda_btn_type = ButtonType.accelCruise if self.CP.carFingerprint == CAR.KIA_EV4 else ButtonType.lkas
@@ -380,7 +388,12 @@ class CarState(CarStateBase):
       ("ADRV_0x165", float('nan')),
       ("ADRV_0x380", float('nan')),
       ("ISLA", float('nan')),
+      ("0x100", float('nan')), # Catch-all if names differ
     ]
+    # HBA/ISLA etc
+    for addr in range(0x230, 0x249):
+        cam_msgs.append((f"0x{addr:03x}", float('nan')))
+
     if CP.carFingerprint == CAR.KIA_EV4:
       cam_msgs.append(("LFA_BUTTON", float('nan')))
     for addr in range(933, 965):

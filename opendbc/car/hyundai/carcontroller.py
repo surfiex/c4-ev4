@@ -228,6 +228,7 @@ class CarController(CarControllerBase):
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs.items():
         # ADRV messages and Radar tracks need to reach the ADAS ECU on ECAN (Bus 1)
+        # EV4: ADAS ECU expects ALL camera traffic on Bus 1 including LKAS_ALT
         can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 
     return can_sends
