@@ -350,8 +350,11 @@ class CarState(CarStateBase):
       elif 933 <= addr <= 964: msg_name = f"RADAR_TRACK_{addr}"
 
       if msg_name and msg_name in cp_cam.vl_all:
-        for msg_values in cp_cam.vl_all[msg_name]:
-          self.hda2_forward_msgs.append((msg_name, copy.copy(msg_values)))
+        vl_all_msg = cp_cam.vl_all[msg_name]
+        sigs = list(vl_all_msg.keys())
+        if sigs:
+          for i in range(len(vl_all_msg[sigs[0]])):
+            self.hda2_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
     lda_btn_type = ButtonType.accelCruise if self.CP.carFingerprint == CAR.KIA_EV4 else ButtonType.lkas
     ret.buttonEvents = [*create_button_events(self.cruise_buttons[-1], prev_cruise_buttons, BUTTONS_DICT),
