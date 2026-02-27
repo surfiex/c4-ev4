@@ -38,23 +38,22 @@ def debug_engagement():
       if sm.updated['controlsState'] or sm.alive['controlsState']:
         ctrls = sm['controlsState']
         try:
-          # Robustly check for engagement status and state
-          d = ctrls.to_dict()
-          active = d.get('active', d.get('enabled', False))
-          state = str(d.get('state', 'N/A'))
-        except Exception as e:
-          state = f"ERR:{type(e).__name__}"
-          if not hasattr(debug_engagement, '_printed_attrs'):
-            try:
-              print(f"\n[DIAG] controlsState keys: {ctrls.to_dict().keys()}")
-            except:
-              pass
-            debug_engagement._printed_attrs = True
+          active = ctrls.active
+          state = str(ctrls.state)
+        except Exception:
+          try:
+            active = ctrls.enabled
+            state = str(ctrls.state)
+          except Exception:
+            state = "N/A"
 
       status = "ENGAGED" if active else ("READY" if not blockers else "BLOCKED")
 
+      # Raw signal debugging (True/False values from CarState)
+      raw = f"D:{int(cs.doorOpen)} S:{int(cs.seatbeltUnlatched)} G:{int(cs.gasPressed)} B:{int(cs.brakePressed)} C:{int(cs.cruiseState.available)}"
+
       print(
-        f"\rStatus: {status:<8} | State: {state:<12} | Blockers: {', '.join(blockers) if blockers else 'None':<38} | Gear: {str(cs.gearShifter):<7} | Speed: {cs.vEgo * 3.6:5.1f}km/h",
+        f"\r{status:<8} | {state:<12} | {raw} | Blockers: {', '.join(blockers) if blockers else 'None':<30} | {cs.vEgo * 3.6:5.1f}km/h",
         end="",
       )
 
