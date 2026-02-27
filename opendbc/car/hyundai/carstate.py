@@ -217,8 +217,8 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
-      ret.doorOpen = cp_cam.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 0
-      ret.seatbeltUnlatched = cp_cam.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 1
+      ret.doorOpen = cp.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 0
+      ret.seatbeltUnlatched = cp.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 1
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["GEAR_SHIFTER"]["GEAR"]
@@ -413,8 +413,9 @@ class CarState(CarStateBase):
       msgs += [
         ("ACCELERATOR", 100),
         ("STEERING_SENSORS", 100),
-        ("GEAR_SHIFTER", float('nan')),
         ("LFA_BUTTON", float('nan')),
+        ("EV4_BODY_1", float('nan')),
+        ("EV4_BODY_2", float('nan')),
         ("RADAR_TRACK_939", float('nan')),
       ]
     else:
@@ -441,14 +442,7 @@ class CarState(CarStateBase):
       ("LFA", float('nan')),
       ("ADRV_0x160", float('nan')),
       ("SCC_CONTROL", float('nan')),
-      ("ADRV_0x1da", float('nan')),
       ("LFAHDA_CLUSTER", float('nan')),
-      ("ADRV_0x1ea", float('nan')),
-      ("ADRV_0x200", float('nan')),
-      ("ADRV_0x345", float('nan')),
-      ("ADRV_0x389", float('nan')),
-      ("ADRV_0x165", float('nan')),
-      ("ADRV_0x380", float('nan')),
       ("ISLA", float('nan')),
       ("ACCELERATOR_BRAKE_ALT", float('nan')),
       ("FR_CMR_01_10ms", float('nan')),
