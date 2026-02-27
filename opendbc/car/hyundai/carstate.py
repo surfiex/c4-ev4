@@ -217,9 +217,8 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
-      cp_a = can_parsers[Bus.pt] # Bus 0 (A-CAN)
-      ret.doorOpen = cp_a.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 1
-      ret.seatbeltUnlatched = cp_a.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
+      ret.doorOpen = cp_cam.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 1
+      ret.seatbeltUnlatched = cp_cam.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["GEAR_SHIFTER"]["GEAR"]
@@ -252,7 +251,7 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
       # EV4_BODY_1 is a strong candidate for Cluster Speed
-      v_clu_2 = cp_a.vl["EV4_BODY_1"]["SPEED_REF_1"] * speed_factor
+      v_clu_2 = cp_cam.vl["EV4_BODY_1"]["SPEED_REF_1"] * speed_factor
       ret.vEgoCluster = v_clu_2
 
     ret.steerFaultTemporary = cp.vl["MDPS"]["LKA_FAULT"] != 0
