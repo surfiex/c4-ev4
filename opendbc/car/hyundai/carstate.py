@@ -317,23 +317,32 @@ class CarState(CarStateBase):
     # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus (Bus 0) and ECAN (Bus 1)
     self.hda2_forward_msgs = {}
     # Include LKAS_ALT, ADRV messages, Radar tracks, and ISLA/HBA messages
-    forward_ids = [0x110, 0x165, 0x362, 0x363, 0x364, 0x380, 0x389, 0x100] + list(range(0x230, 0x249)) + list(range(933, 965))
+    # Include all 80 IDs found on Bus 2 (Camera Bus) in the fingerprint
+    forward_ids = [256, 272, 282, 357, 437, 506, 698, 752, 864, 865, 866, 867, 868, 896, 905, 917, 928, 976, 977, 978, 979, 980, 1280] + \
+                  list(range(560, 585)) + list(range(933, 965))
     for addr in forward_ids:
       msg_name = None
-      if addr == 0x110: msg_name = "LKAS_ALT"
-      elif addr == 0x165: msg_name = "ADRV_0x165"
-      elif addr == 0x362: msg_name = "CAM_0x362"
-      elif addr == 0x363: msg_name = "CAM_0x363"
-      elif addr == 0x364: msg_name = "CAM_0x364"
-      elif addr == 0x380: msg_name = "ADRV_0x380"
-      elif addr == 0x389: msg_name = "ADRV_0x389"
-      elif addr == 0x11a: msg_name = "FR_CMR_01_10ms"
-      elif addr == 0x1b5: msg_name = "CAMERA_0x1b5"
-      elif addr == 0x1fa: msg_name = "ISLA"
-      elif addr == 0x2ba: msg_name = "IFS_0x2ba"
-      elif addr == 0x100: msg_name = "ACCELERATOR_BRAKE_ALT"
-      elif 0x230 <= addr <= 0x248:
-        msg_name = "RADAR_0x240" if addr == 0x240 else f"HBA_0x{addr:03x}"
+      if addr == 256: msg_name = "ACCELERATOR_BRAKE_ALT"
+      elif addr == 272: msg_name = "LKAS_ALT"
+      elif addr == 282: msg_name = "FR_CMR_01_10ms"
+      elif addr == 357: msg_name = "ADRV_0x165"
+      elif addr == 437: msg_name = "CAMERA_0x1b5"
+      elif addr == 506: msg_name = "ISLA"
+      elif addr == 698: msg_name = "IFS_0x2ba"
+      elif addr == 752: msg_name = "ID752"
+      elif addr == 864: msg_name = "ID864"
+      elif addr == 865: msg_name = "ID865"
+      elif addr == 866: msg_name = "CAM_0x362"
+      elif addr == 867: msg_name = "CAM_0x363"
+      elif addr == 868: msg_name = "CAM_0x364"
+      elif addr == 896: msg_name = "ADRV_0x380"
+      elif addr == 905: msg_name = "ADRV_0x389"
+      elif addr == 917: msg_name = "ID917"
+      elif addr == 928: msg_name = "ID928"
+      elif addr in range(976, 981): msg_name = f"ID{addr}"
+      elif addr == 1280: msg_name = "ID1280"
+      elif 560 <= addr <= 584:
+        msg_name = "RADAR_0x240" if addr == 576 else f"HBA_0x{addr:03x}"
       elif 933 <= addr <= 964: msg_name = f"RADAR_TRACK_{addr}"
 
       if msg_name and msg_name in cp_cam.vl:
@@ -397,6 +406,17 @@ class CarState(CarStateBase):
       ("FR_CMR_01_10ms", float('nan')),
       ("CAMERA_0x1b5", float('nan')),
       ("IFS_0x2ba", float('nan')),
+      ("ID752", float('nan')),
+      ("ID864", float('nan')),
+      ("ID865", float('nan')),
+      ("ID917", float('nan')),
+      ("ID928", float('nan')),
+      ("ID976", float('nan')),
+      ("ID977", float('nan')),
+      ("ID978", float('nan')),
+      ("ID979", float('nan')),
+      ("ID980", float('nan')),
+      ("ID1280", float('nan')),
     ]
     # HBA/ISLA etc
     for addr in range(560, 585):

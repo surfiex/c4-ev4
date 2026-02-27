@@ -49,22 +49,36 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
     "DAMP_FACTOR": 100,  # can potentially tuned for better perf [3, 200]
   }
 
-  lkas_values = copy.copy(common_values)
-  # Real camera LKAS_ALT has LKA_AVAILABLE=3 (0b11, byte3 bits 3-4 in 0x18).
-  # Sending 0 tells ADAS ECU "camera LKA unavailable" → all camera ADAS cluster errors.
-  # For True MITM, we use camera's original LKA_AVAILABLE if available.
-  lkas_values["LKA_AVAILABLE"] = lkas_alt_msg["LKA_AVAILABLE"] if lkas_alt_msg else 3
-
-  # True MITM: Preserve all other bytes from original camera message if it exists
+  lkas_values = {}
+  # True MITM: Start with all original bytes from camera message
   if lkas_alt_msg:
     for i in range(32):
       msg_key = f"BYTE{i}"
-      if msg_key in lkas_alt_msg and msg_key not in lkas_values:
+      if msg_key in lkas_alt_msg:
         lkas_values[msg_key] = lkas_alt_msg[msg_key]
 
-  lfa_values = copy.copy(common_values)
-  lfa_values["NEW_SIGNAL_1"] = 0
+  # Now apply Openpilot overrides on top of the original bytes
+  lkas_values.update({
+    "LKA_MODE": 2 if lat_active else (lkas_alt_msg["LKA_MODE"] if lkas_alt_msg else 0),
+    "LKA_ICON": 2 if enabled else (lkas_alt_msg["LKA_ICON"] if lkas_alt_msg else 1),
+    "TORQUE_REQUEST": apply_torque,
+    "LKA_ASSIST": 0,
+    "STEER_REQ": 1 if lat_active else 0,
+    "STEER_MODE": 0,
+    "HAS_LANE_SAFETY": 0,
+    "LKA_AVAILABLE": lkas_alt_msg["LKA_AVAILABLE"] if lkas_alt_msg else 3,
+  })
 
+  lfa_values = {
+    "LKA_MODE": 2 if lat_active else (lkas_alt_msg["LKA_MODE"] if lkas_alt_msg else 0),
+    "LKA_ICON": 2 if enabled else (lkas_alt_msg["LKA_ICON"] if lkas_alt_msg else 1),
+    "TORQUE_REQUEST": apply_torque,
+    "LKA_ASSIST": 0,
+    "STEER_REQ": 1 if lat_active else 0,
+    "STEER_MODE": 0,
+    "HAS_LANE_SAFETY": 0,
+    "NEW_SIGNAL_1": 0,
+  }
   ret = []
   if CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
     lkas_msg = "LKAS_ALT" if CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT else "LKAS"
