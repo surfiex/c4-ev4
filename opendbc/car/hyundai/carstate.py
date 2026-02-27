@@ -368,7 +368,7 @@ class CarState(CarStateBase):
             self.hda2_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
     # Car -> Camera Bus (1 -> 2)
-    car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426]
+    car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426, 976, 979]
     for addr in car_to_cam_ids:
       msg_name = None
       if addr == 53: msg_name = "ACCELERATOR"
@@ -378,6 +378,8 @@ class CarState(CarStateBase):
       elif addr == 304: msg_name = "GEAR_SHIFTER"
       elif addr == 373: msg_name = "TCS"
       elif addr == 426: msg_name = "CRUISE_BUTTONS_ALT"
+      elif addr == 976: msg_name = "EV4_BODY_1"
+      elif addr == 979: msg_name = "EV4_BODY_2"
 
       if msg_name and msg_name in cp.vl_all:
         vl_all_msg = cp.vl_all[msg_name]
