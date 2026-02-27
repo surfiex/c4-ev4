@@ -76,7 +76,8 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
     # EV4 Special: Manually pack LKAS_ALT to ensure CRC and Counter integrity for MITM
     if CP.carFingerprint == "KIA_EV4" and lkas_msg == "LKAS_ALT":
       # 1. Start with the packer's best effort based on the expanded DBC
-      _, _, dat_raw, _ = packer.make_can_msg(lkas_msg, 0, lkas_values)
+      # make_can_msg returns (addr, data, bus)
+      _, dat_raw, _ = packer.make_can_msg(lkas_msg, 0, lkas_values)
       dat = bytearray(dat_raw)
 
       # 2. Recalculate CRC (Bytes 0-1)
