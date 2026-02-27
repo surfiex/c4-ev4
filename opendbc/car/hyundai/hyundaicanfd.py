@@ -267,41 +267,66 @@ def create_adrv_messages_ev4(packer, CAN, frame):
 
   # ADRV_0x160 - send custom byte struct
   if frame % 2 == 0:
-    values = {
-      'AEB_SETTING': 0x1,
-      'SET_ME_2': 0x01, # byte 10
-      'SET_ME_FF': 0xff, # byte 8
-      'SET_ME_FC': 0xfc, # byte 9
-      'SET_ME_9': 0x9,
-      # EV4 specific hardcoded values observed in log:
-      # Byte 0: 0x0d, Byte 1: 0x33, Byte 2: 0x51, Byte 4: 0x80, Byte 12: 0xa8, Byte 14: 0x10
-    }
-    # It's easier to send raw bytes for these unknown structures since DBC doesn't cover them perfectly.
-    # We will just pack them using the general format. Since hyundaicanfd.py relies on DBC, we'll
-    # map the closest values we can, or bypass if needed. For now, let's just make the standard
-    # function use the EV4 bytes.
-
-  # For EV4, it was experimentally found that disabling fake ADRV completely
-  # stops the "Regenerative Braking Limitation" error. However, missing ADRV *will* cause
-  # basic cluster faults. We will try sending the exact bytes dumped from the log.
-
-  if frame % 2 == 0:
-    # 0x160
-    ret.append([0x160, b'\x0d\x33\x51\x00\x80\x00\x00\x00\xff\xfc\x01\x00\xa8\x00\x10\x00', CAN.ECAN])
+    # 0x160 (352)
+    values = {}
+    dat = bytearray(packer.make_can_msg("ADRV_0x160", CAN.ECAN, values)[1])
+    dat[4] = 0x80
+    dat[8] = 0xff
+    dat[9] = 0xfc
+    dat[10] = 0x01
+    dat[12] = 0xa8
+    dat[14] = 0x10
+    crc = hkg_can_fd_checksum(0x160, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    ret.append([0x160, bytes(dat), CAN.ECAN])
 
   if frame % 5 == 0:
-    # 0x1ea
-    ret.append([0x1ea, b'\x35\x13\xd3\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0f\x0f\x00', CAN.ECAN])
-    # 0x200
-    ret.append([0x200, b'\x84\x68\x20\x14\x80\x2a\x00\x00', CAN.ECAN])
+    # 0x1ea (490)
+    values = {}
+    dat = bytearray(packer.make_can_msg("ADRV_0x1ea", CAN.ECAN, values)[1])
+    dat[3] = 0x08
+    dat[15] = 0xff
+    dat[29] = 0x0f
+    dat[30] = 0x0f
+    crc = hkg_can_fd_checksum(0x1ea, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    ret.append([0x1ea, bytes(dat), CAN.ECAN])
+
+    # 0x200 (512)
+    values = {}
+    dat = bytearray(packer.make_can_msg("ADRV_0x200", CAN.ECAN, values)[1])
+    dat[3] = 0x14
+    dat[4] = 0x80
+    dat[5] = 0x2a
+    crc = hkg_can_fd_checksum(0x200, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    ret.append([0x200, bytes(dat), CAN.ECAN])
 
   if frame % 20 == 0:
-    # 0x345
-    ret.append([0x345, b'\x11\xcd\x59\x15\x00\xd6\x01\x00', CAN.ECAN])
+    # 0x345 (837)
+    values = {}
+    dat = bytearray(packer.make_can_msg("ADRV_0x345", CAN.ECAN, values)[1])
+    dat[3] = 0x15
+    dat[5] = 0xd6
+    dat[6] = 0x01
+    crc = hkg_can_fd_checksum(0x345, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    ret.append([0x345, bytes(dat), CAN.ECAN])
 
   if frame % 100 == 0:
-    # 0x1da
-    ret.append([0x1da, b'\x8e\xcb\x11\x67\x00\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', CAN.ECAN])
+    # 0x1da (474)
+    values = {}
+    dat = bytearray(packer.make_can_msg("ADRV_0x1da", CAN.ECAN, values)[1])
+    dat[3] = 0x67
+    dat[5] = 0x31
+    crc = hkg_can_fd_checksum(0x1da, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    ret.append([0x1da, bytes(dat), CAN.ECAN])
 
   return ret
 
