@@ -172,12 +172,14 @@ class CarController(CarControllerBase):
     can_sends.extend(hyundaicanfd.create_steering_messages(self.packer, self.CP, self.CAN, CC.enabled, apply_steer_req, apply_torque))
 
     # prevent LFA from activating on LKA steering cars by sending "no lane lines detected" to ADAS ECU
-    if self.frame % 5 == 0 and lka_steering:
+    # EV4: skipped - ADAS ECU treats zeroed CAM_0x362 as camera failure, triggering all ADAS errors
+    if self.frame % 5 == 0 and lka_steering and self.car_fingerprint != CAR.KIA_EV4:
       can_sends.append(hyundaicanfd.create_suppress_lfa(self.packer, self.CAN, CS.lfa_block_msg,
                                                         self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT))
 
     # LFA and HDA icons
-    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long or self.CP.carFingerprint == CAR.KIA_EV4):
+    # EV4: ADAS ECU sends LFAHDA_CLUSTER itself when active; skip to avoid conflict
+    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long):
       can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CAN, CC.enabled, self.frame))
 
     # blinkers
