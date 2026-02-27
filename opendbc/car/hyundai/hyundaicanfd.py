@@ -302,7 +302,7 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     dat[2] = cnt_20hz   # COUNTER byte
     dat[3] = 0x14
     dat[4] = 0x80
-    dat[5] = 0x2a
+    dat[5] = 0x29       # was 0x2a, corrected from real vehicle log
     crc = hkg_can_fd_checksum(0x200, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
