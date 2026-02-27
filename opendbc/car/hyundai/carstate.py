@@ -411,7 +411,6 @@ class CarState(CarStateBase):
       ("CAMERA_0x1b5", float('nan')),
       ("IFS_0x2ba", float('nan')),
       ("ID752", float('nan')),
-      ("ID864", float('nan')),
       ("ID865", float('nan')),
       ("ID917", float('nan')),
       ("ID928", float('nan')),
