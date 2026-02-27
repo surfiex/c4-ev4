@@ -315,15 +315,15 @@ class CarState(CarStateBase):
                                           else cp_cam.vl["CAM_0x2a4"])
 
     # HDA2 Forwarding: Save messages from camera bus to be forwarded to car bus (Bus 0) and ECAN (Bus 1)
-    self.hda2_forward_msgs = {}
-    # Include LKAS_ALT, ADRV messages, Radar tracks, and ISLA/HBA messages
+    # Using vl_all to ensure we forward every message exactly as received without duplicates
+    self.hda2_forward_msgs = []
     # Include all 80 IDs found on Bus 2 (Camera Bus) in the fingerprint
     forward_ids = [256, 272, 282, 357, 437, 506, 698, 752, 864, 865, 866, 867, 868, 896, 905, 917, 928, 976, 977, 978, 979, 980, 1280] + \
                   list(range(560, 585)) + list(range(933, 965))
     for addr in forward_ids:
       msg_name = None
       if addr == 256: msg_name = "ACCELERATOR_BRAKE_ALT"
-      elif addr == 272: msg_name = "LKAS_ALT"
+      elif addr == 272: continue  # LKAS_ALT is handled manually in CarController
       elif addr == 282: msg_name = "FR_CMR_01_10ms"
       elif addr == 357: msg_name = "ADRV_0x165"
       elif addr == 437: msg_name = "CAMERA_0x1b5"
@@ -349,8 +349,9 @@ class CarState(CarStateBase):
         msg_name = "RADAR_0x240" if addr == 576 else f"HBA_0x{addr:03x}"
       elif 933 <= addr <= 964: msg_name = f"RADAR_TRACK_{addr}"
 
-      if msg_name and msg_name in cp_cam.vl:
-        self.hda2_forward_msgs[msg_name] = copy.copy(cp_cam.vl[msg_name])
+      if msg_name and msg_name in cp_cam.vl_all:
+        for msg_values in cp_cam.vl_all[msg_name]:
+          self.hda2_forward_msgs.append((msg_name, copy.copy(msg_values)))
 
     lda_btn_type = ButtonType.accelCruise if self.CP.carFingerprint == CAR.KIA_EV4 else ButtonType.lkas
     ret.buttonEvents = [*create_button_events(self.cruise_buttons[-1], prev_cruise_buttons, BUTTONS_DICT),
