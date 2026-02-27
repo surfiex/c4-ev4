@@ -246,6 +246,37 @@ def create_adrv_messages(packer, CAN, frame):
   return ret
 
 
+def create_adrv_messages_ev4(packer, CAN, frame):
+  # Messages needed to keep the EV4 happy after disabling
+  # the ADAS Driving ECU to do longitudinal control
+  ret = []
+
+  # ADRV_0x51
+  values = {}
+  ret.append(packer.make_can_msg("ADRV_0x51", CAN.ACAN, values))
+
+  # ADRV_0x160 - send custom byte struct
+  if frame % 2 == 0:
+    # 0x160
+    ret.append([0x160, b'\x0d\x33\x51\x00\x80\x00\x00\x00\xff\xfc\x01\x00\xa8\x00\x10\x00', CAN.ECAN])
+
+  if frame % 5 == 0:
+    # 0x1ea
+    ret.append([0x1ea, b'\x35\x13\xd3\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0f\x0f\x00', CAN.ECAN])
+    # 0x200
+    ret.append([0x200, b'\x84\x68\x20\x14\x80\x2a\x00\x00', CAN.ECAN])
+
+  if frame % 20 == 0:
+    # 0x345
+    ret.append([0x345, b'\x11\xcd\x59\x15\x00\xd6\x01\x00', CAN.ECAN])
+
+  if frame % 100 == 0:
+    # 0x1da
+    ret.append([0x1da, b'\x8e\xcb\x11\x67\x00\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', CAN.ECAN])
+
+  return ret
+
+
 def hkg_can_fd_checksum(address: int, sig, d: bytearray) -> int:
   crc = 0
   for i in range(2, len(d)):
