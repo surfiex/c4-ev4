@@ -38,14 +38,17 @@ def debug_engagement():
       if sm.updated['controlsState'] or sm.alive['controlsState']:
         ctrls = sm['controlsState']
         try:
-          # In some OP versions, this is 'active' or 'enabled'
-          active = getattr(ctrls, 'active', getattr(ctrls, 'enabled', False))
-          state = str(getattr(ctrls, 'state', 'N/A'))
+          # Robustly check for engagement status and state
+          d = ctrls.to_dict()
+          active = d.get('active', d.get('enabled', False))
+          state = str(d.get('state', 'N/A'))
         except Exception as e:
           state = f"ERR:{type(e).__name__}"
-          # Print available attributes once if we error
           if not hasattr(debug_engagement, '_printed_attrs'):
-            print(f"\n[DIAG] controlsState attrs: {dir(ctrls)}")
+            try:
+              print(f"\n[DIAG] controlsState keys: {ctrls.to_dict().keys()}")
+            except:
+              pass
             debug_engagement._printed_attrs = True
 
       status = "ENGAGED" if active else ("READY" if not blockers else "BLOCKED")
