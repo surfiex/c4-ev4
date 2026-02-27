@@ -123,7 +123,7 @@ def create_acc_cancel(packer, CP, CAN, cruise_info_copy):
   return packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
 
 
-def create_lfahda_cluster(packer, CAN, enabled, checksum_func=None, cnt=None):
+def create_lfahda_cluster(packer, CAN, enabled, cnt=None):
   values = {
     "HDA_ICON": 1, # white
     "LFA_ICON": 2 if enabled else 1, # 2: green, 1: white
@@ -140,9 +140,7 @@ def create_lfahda_cluster(packer, CAN, enabled, checksum_func=None, cnt=None):
 
   if cnt is not None:
     values["COUNTER"] = cnt % 256
-  if checksum_func is not None:
-    msg = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
-    values["CHECKSUM"] = checksum_func(0x1e0, None, msg[1])
+  # CHECKSUM is auto-calculated by CANPacker (KIA_EV4_v19 is registered in dbc.py)
 
   return packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
 
