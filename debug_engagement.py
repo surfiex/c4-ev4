@@ -4,7 +4,7 @@ from opendbc.car.structs import CarState
 
 def debug_engagement():
   sm = messaging.SubMaster(['carState', 'carParams', 'controlsState'])
-  print("Starting Engagement Debugger for Kia EV4...")
+  print("Starting Engagement Debugger for Kia EV4 (v2.2)...")
   print("Press Ctrl+C to stop.\n")
 
   while True:
@@ -25,7 +25,7 @@ def debug_engagement():
         blockers.append("Seatbelt Unlatched")
       if not cs.cruiseState.available:
         blockers.append("Cruise Not Available")
-      if cs.gearShifter != "drive":
+      if str(cs.gearShifter) != "drive":
         blockers.append(f"Not in Drive ({cs.gearShifter})")
       if cs.steerFaultTemporary:
         blockers.append("Steer Fault (Temp)")
