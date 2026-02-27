@@ -86,8 +86,6 @@ BO_ 304 GEAR_SHIFTER: 16 XXX
 BO_ 864 LFA_BUTTON: 32 XXX
  SG_ LEFT_BLINKER : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ RIGHT_BLINKER : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
@@ -121,9 +119,7 @@ BO_ 864 LFA_BUTTON: 32 XXX
 
 BO_ 976 EV4_BODY_1: 32 XXX
  SG_ DRIVER_SEATBELT : 0|1@1+ (1,0) [0|1] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ SPEED_REF_1 : 8|16@1+ (0.01,0) [0|655.35] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
@@ -156,7 +152,6 @@ BO_ 976 EV4_BODY_1: 32 XXX
 
 BO_ 979 EV4_BODY_2: 32 XXX
  SG_ DOOR_OPEN_ANY : 0|1@1+ (1,0) [0|1] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
