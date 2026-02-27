@@ -35,7 +35,7 @@ def debug_engagement():
       status = "BLOCKED" if blockers else "READY"
 
       print(
-        f"\rStatus: {status} | Blockers: {', '.join(blockers) if blockers else 'None':<50} | Gear: {cs.gearShifter:<7} | Speed: {cs.vEgo * 3.6:5.1f}km/h",
+        f"\rStatus: {status} | Blockers: {', '.join(blockers) if blockers else 'None':<50} | Gear: {str(cs.gearShifter):<7} | Speed: {cs.vEgo * 3.6:5.1f}km/h",
         end="",
       )
 
