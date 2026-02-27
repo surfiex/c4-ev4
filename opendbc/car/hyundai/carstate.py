@@ -327,7 +327,7 @@ class CarState(CarStateBase):
       elif addr == 0x364: msg_name = "CAM_0x364"
       elif addr == 0x380: msg_name = "ADRV_0x380"
       elif addr == 0x389: msg_name = "ADRV_0x389"
-      elif addr == 0x11a: msg_name = "DAW_HBA"
+      elif addr == 0x11a: msg_name = "FR_CMR_01_10ms"
       elif addr == 0x1b5: msg_name = "CAMERA_0x1b5"
       elif addr == 0x1fa: msg_name = "ISLA"
       elif addr == 0x2ba: msg_name = "IFS_0x2ba"
@@ -393,7 +393,7 @@ class CarState(CarStateBase):
       ("ADRV_0x380", float('nan')),
       ("ISLA", float('nan')),
       ("ACCELERATOR_BRAKE_ALT", float('nan')),
-      ("DAW_HBA", float('nan')),
+      ("FR_CMR_01_10ms", float('nan')),
       ("CAMERA_0x1b5", float('nan')),
       ("IFS_0x2ba", float('nan')),
     ]
