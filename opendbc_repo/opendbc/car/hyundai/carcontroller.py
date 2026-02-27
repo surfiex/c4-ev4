@@ -184,7 +184,9 @@ class CarController(CarControllerBase):
 
     if self.CP.openpilotLongitudinalControl:
       if lka_steering:
-        if self.CP.carFingerprint != CAR.KIA_EV4:
+        if self.CP.carFingerprint == CAR.KIA_EV4:
+          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
+        else:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
       else:
         can_sends.extend(hyundaicanfd.create_fca_warning_light(self.packer, self.CAN, self.frame))
@@ -195,7 +197,10 @@ class CarController(CarControllerBase):
     else:
       # HDA2 needs ADRV heartbeats even for lateral-only
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
-        can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
+        if self.CP.carFingerprint == CAR.KIA_EV4:
+          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
+        else:
+          can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
 
       # button presses
       if (self.frame - self.last_button_frame) * DT_CTRL > 0.25:
