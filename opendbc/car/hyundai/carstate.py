@@ -217,8 +217,8 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
-      ret.doorOpen = cp_cam.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 1
-      ret.seatbeltUnlatched = cp_cam.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
+      ret.doorOpen = cp_cam.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 0
+      ret.seatbeltUnlatched = cp_cam.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 1
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["GEAR_SHIFTER"]["GEAR"]
