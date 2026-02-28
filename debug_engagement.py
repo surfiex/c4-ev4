@@ -5,7 +5,7 @@ def debug_engagement():
   # 0.10.x uses selfdriveState for current engagement state
   services = ['carState', 'carParams', 'selfdriveState', 'can']
   sm = messaging.SubMaster(services)
-  print("Starting Engagement Debugger for Kia EV4 (v2.7) [Raw Diagnostics]...")
+  print("Starting Engagement Debugger for Kia EV4 (v2.8) [Polarity Final Fix]...")
   print("Press Ctrl+C to stop.\n")
 
   last_state = None
@@ -24,9 +24,6 @@ def debug_engagement():
 
       # Blockers logic (D: Door, S: Seatbelt, G: Gas, B: Brake, C: Cruise)
       raw = f"D:{int(cs.doorOpen)} S:{int(cs.seatbeltUnlatched)} G:{int(cs.gasPressed)} B:{int(cs.brakePressed)} C:{int(cs.cruiseState.available)}"
-
-      # Try to get raw door signal if possible (though we don't have direct access to CANParser here)
-      # We'll rely on the user showing us the UI later if this doesn't clarify.
 
       blockers = []
       if cs.gasPressed:
