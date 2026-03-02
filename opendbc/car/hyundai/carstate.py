@@ -392,6 +392,7 @@ class CarState(CarStateBase):
             self.car_to_cam_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
     btn_dict = BUTTONS_DICT_EV4 if self.CP.carFingerprint == CAR.KIA_EV4 else BUTTONS_DICT
+    lda_btn_type = ButtonType.lkas
     ret.buttonEvents = [*create_button_events(self.cruise_buttons[-1], prev_cruise_buttons, btn_dict),
                         *create_button_events(self.main_buttons[-1], prev_main_buttons, {1: ButtonType.mainCruise}),
                         *create_button_events(self.lda_button, prev_lda_button, {1: lda_btn_type})]
