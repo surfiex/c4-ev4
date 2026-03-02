@@ -222,10 +222,6 @@ class CarState(CarStateBase):
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
       ret.doorOpen = cp.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 0
       ret.seatbeltUnlatched = cp.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] != 0
-      ret.leftFrontDoorOpen = ret.doorOpen
-      ret.rightFrontDoorOpen = ret.doorOpen
-      ret.leftRearDoorOpen = ret.doorOpen
-      ret.rightRearDoorOpen = ret.doorOpen
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["ACCELERATOR"]["GEAR"]
@@ -408,10 +404,6 @@ class CarState(CarStateBase):
       if not ret.cruiseState.available and ret.vEgo < 0.1:
         ret.doorOpen = False
         ret.seatbeltUnlatched = False
-        ret.leftFrontDoorOpen = False
-        ret.rightFrontDoorOpen = False
-        ret.leftRearDoorOpen = False
-        ret.rightRearDoorOpen = False
         if ret.gearShifter == structs.CarState.GearShifter.park:
           ret.gearShifter = structs.CarState.GearShifter.drive
 
