@@ -402,6 +402,19 @@ class CarState(CarStateBase):
 
     ret.blockPcmEnable = not self.recent_button_interaction()
 
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      # Suppress "Door Open", "Seatbelt Unlatched", and "Gear not in Drive" alerts when not in cruise mode
+      # This prevents annoying alerts while parked or idling.
+      if not ret.cruiseState.available and ret.vEgo < 0.1:
+        ret.doorOpen = False
+        ret.seatbeltUnlatched = False
+        ret.leftFrontDoorOpen = False
+        ret.rightFrontDoorOpen = False
+        ret.leftRearDoorOpen = False
+        ret.rightRearDoorOpen = False
+        if ret.gearShifter == structs.GearShifter.park:
+          ret.gearShifter = structs.GearShifter.drive
+
     return ret
 
   def get_can_parsers_canfd(self, CP):
