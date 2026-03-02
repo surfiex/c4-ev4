@@ -412,8 +412,8 @@ class CarState(CarStateBase):
         ret.rightFrontDoorOpen = False
         ret.leftRearDoorOpen = False
         ret.rightRearDoorOpen = False
-        if ret.gearShifter == structs.GearShifter.park:
-          ret.gearShifter = structs.GearShifter.drive
+        if ret.gearShifter == structs.CarState.GearShifter.park:
+          ret.gearShifter = structs.CarState.GearShifter.drive
 
     return ret
 
