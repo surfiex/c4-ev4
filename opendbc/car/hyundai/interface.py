@@ -179,6 +179,51 @@ class CarInterface(CarInterfaceBase):
 
     return ret
 
+  def update(self, can_packets: list[tuple[int, list[structs.CanData]]]) -> structs.CarState:
+    # parse can
+    for cp in self.can_parsers.values():
+      if cp is not None:
+        cp.update(can_packets)
+
+    # get CarState
+    ret = self.CS.update(self.can_parsers)
+
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      # Suppress "Door Open", "Seatbelt Unlatched", and "Gear not in Drive" alerts when not in cruise mode
+      # This prevents annoying alerts while parked or idling.
+      if not ret.cruiseState.available and ret.vEgo < 0.1:
+        ret.doorOpen = False
+        ret.seatbeltUnlatched = False
+        ret.leftFrontDoorOpen = False
+        ret.rightFrontDoorOpen = False
+        ret.leftRearDoorOpen = False
+        ret.rightRearDoorOpen = False
+        if ret.gearShifter == structs.CarState.GearShifter.park:
+          ret.gearShifter = structs.CarState.GearShifter.drive
+
+    ret.canValid = all(cp.can_valid for cp in self.can_parsers.values())
+    ret.canTimeout = any(cp.bus_timeout for cp in self.can_parsers.values())
+
+    if ret.vEgoCluster == 0.0 and not self.v_ego_cluster_seen:
+      ret.vEgoCluster = ret.vEgo
+    else:
+      self.v_ego_cluster_seen = True
+
+    # Many cars apply hysteresis to the ego dash speed
+    ret.vEgoCluster = apply_hysteresis(ret.vEgoCluster, self.CS.out.vEgoCluster, self.CS.cluster_speed_hyst_gap)
+    if abs(ret.vEgo) < self.CS.cluster_min_speed:
+      ret.vEgoCluster = 0.0
+
+    if ret.cruiseState.speedCluster == 0:
+      ret.cruiseState.speedCluster = ret.cruiseState.speed
+
+    ret.buttonEnable = self.CS.update_button_enable(ret.buttonEvents)
+
+    # save for next iteration
+    self.CS.out = ret
+
+    return ret
+
   @staticmethod
   def init(CP, can_recv, can_send, communication_control=None):
     # 0x80 silences response
