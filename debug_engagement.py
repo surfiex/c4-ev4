@@ -5,7 +5,7 @@ def debug_engagement():
   # 0.10.x uses selfdriveState for current engagement state
   services = ['carState', 'carParams', 'selfdriveState', 'can']
   sm = messaging.SubMaster(services)
-  print("Starting Engagement Debugger for Kia EV4 (v2.8) [Polarity Final Fix]...")
+  print("Starting Engagement Debugger for Kia EV4 (v2.9) [Fingerprint & Polarity Fix]...")
   print("Press Ctrl+C to stop.\n")
 
   last_state = None
@@ -56,12 +56,13 @@ def debug_engagement():
         except Exception as e:
           state = f"ERR:{type(e).__name__}"
 
-      # Diagnostics for CAN validity
+      # Diagnostics
       can_valid = "OK" if cs.canValid else "INVALID"
+      fingerprint = cs.carFingerprint if hasattr(cs, 'carFingerprint') else "N/A"
 
       # Print line
       print(
-        f"\r{status:<10} | {state:<15} | {raw} | Valid:{can_valid:<7} | Blockers: {', '.join(blockers) if blockers else 'None':<25} | {cs.vEgo * 3.6:5.1f}km/h",
+        f"\r{status:<10} | {state:<12} | {raw} | FP:{fingerprint[:10]:<10} | Blockers: {', '.join(blockers) if blockers else 'None':<25} | {cs.vEgo * 3.6:5.1f}km/h",
         end="",
       )
 
