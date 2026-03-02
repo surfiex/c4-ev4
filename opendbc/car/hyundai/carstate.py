@@ -221,7 +221,11 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint == CAR.KIA_EV4:
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
       ret.doorOpen = cp.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 0
-      ret.seatbeltUnlatched = cp.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] == 0
+      ret.seatbeltUnlatched = cp.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] != 0
+      ret.leftFrontDoorOpen = ret.doorOpen
+      ret.rightFrontDoorOpen = ret.doorOpen
+      ret.leftRearDoorOpen = ret.doorOpen
+      ret.rightRearDoorOpen = ret.doorOpen
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["ACCELERATOR"]["GEAR"]
@@ -391,8 +395,8 @@ class CarState(CarStateBase):
           for i in range(len(vl_all_msg[sigs[0]])):
             self.car_to_cam_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
-    lda_btn_type = ButtonType.accelCruise if self.CP.carFingerprint == CAR.KIA_EV4 else ButtonType.lkas
-    ret.buttonEvents = [*create_button_events(self.cruise_buttons[-1], prev_cruise_buttons, BUTTONS_DICT),
+    btn_dict = BUTTONS_DICT_EV4 if self.CP.carFingerprint == CAR.KIA_EV4 else BUTTONS_DICT
+    ret.buttonEvents = [*create_button_events(self.cruise_buttons[-1], prev_cruise_buttons, btn_dict),
                         *create_button_events(self.main_buttons[-1], prev_main_buttons, {1: ButtonType.mainCruise}),
                         *create_button_events(self.lda_button, prev_lda_button, {1: lda_btn_type})]
 
