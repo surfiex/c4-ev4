@@ -8,6 +8,12 @@ Ecu = CarParams.Ecu
 # i.e. if it sends the SCC messages or if another ECU like the camera or ADAS Driving ECU does
 
 
+FINGERPRINTS = {
+  CAR.KIA_EV4: [{
+    0x1cf: 8, # CRUISE_BUTTONS_ALT
+  }],
+}
+
 FW_VERSIONS = {
   CAR.HYUNDAI_AZERA_6TH_GEN: {
     (Ecu.fwdRadar, 0x7d0, None): [

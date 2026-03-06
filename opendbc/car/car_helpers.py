@@ -153,6 +153,14 @@ def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multip
   candidate, fingerprints, vin, car_fw, source, exact_match = fingerprint(can_recv, can_send, set_obd_multiplexing, num_pandas, cached_params)
 
   if candidate is None:
+    # KIA EV4 override: if we see 0x1cf (CRUISE_BUTTONS_ALT) or 0x110 (LKAS_ALT) on any bus, it's an EV4
+    all_msgs = [m for b in fingerprints.values() for m in b]
+    if 0x1cf in all_msgs or 0x110 in all_msgs:
+      from opendbc.car.hyundai.values import CAR as HYUNDAI_CAR
+      candidate = HYUNDAI_CAR.KIA_EV4
+      carlog.error("KIA EV4 manual override triggered")
+
+  if candidate is None:
     carlog.error({"event": "car doesn't match any fingerprints", "fingerprints": repr(fingerprints)})
     candidate = "MOCK"
 
