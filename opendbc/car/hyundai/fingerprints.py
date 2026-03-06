@@ -1277,5 +1277,17 @@ FW_VERSIONS = {
     (Ecu.fwdCamera, 0x7c4, None): [
       b'\xf1\x00CT11.011.031.012551000HKP_CT125_50430099211EZ000',
     ],
+    (Ecu.fwdRadar, 0x7d0, None): [
+      b'\xf1\x00CT1__               1.00 1.01 99110EZ000          ',
+      b'\xf1\x8b %\x07\x08',
+    ],
+    (Ecu.combinationMeter, 0x7c6, None): [
+      b'\xf1\x00481',
+      b'\xb0\x02\xe0\x80\x00\x00\xff\xb5\x00/\x83\x00\x00\x00\x00\x00\xb7\x00\x00\x00\x00 \x1c',
+    ],
+    (Ecu.hvac, 0x7b3, None): [
+      b"\xf1\x00CT1 EV97255-EZ010CONTROL ASS'Y-DATC  1.04.00_R2.0_24.08.01\x00\x00\x00\x00",
+      b'\xf1\x10\x07\x00\x00\x00',
+    ],
   },
 }
