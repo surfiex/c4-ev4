@@ -166,11 +166,11 @@ class CarInterface(CarInterfaceBase):
 
       # EV4: lateral-only control.
       # - openpilotLongitudinalControl=False: OP does NOT send SCC_CONTROL on Bus 1
-      # - pcmCruise=False: OP engages independently of stock SCC status (needed for HDA2 MITM)
+      # - pcmCruise=True: OP engages when stock SCC status is active (standard for lateral-only)
       # - LFA is NOT sent on Bus 1 (fixed in create_steering_messages) to avoid ECAN conflict
       # - Only LKAS_ALT on Bus 0 (ACAN) is sent for steering override - true MITM approach
       ret.openpilotLongitudinalControl = False
-      ret.pcmCruise = False
+      ret.pcmCruise = True
 
     # Dashcam cars are missing a test route, or otherwise need validation
     # TODO: Optima Hybrid 2017 uses a different SCC12 checksum
