@@ -118,8 +118,17 @@ class Car:
 
     self.CP.alternativeExperience = 0
     openpilot_enabled_toggle = self.params.get_bool("OpenpilotEnabledToggle")
+
+    # EV4 Nuclear Option: Force non-passive mode to bypass all dashcam-only checks
+    if self.CP.carFingerprint == "KIA_EV4":
+      self.CP.dashcamOnly = False
+      openpilot_enabled_toggle = True
+
     controller_available = self.CI.CC is not None and openpilot_enabled_toggle and not self.CP.dashcamOnly
     self.CP.passive = not controller_available or self.CP.dashcamOnly
+    if self.CP.carFingerprint == "KIA_EV4":
+      self.CP.passive = False
+
     if self.CP.passive:
       safety_config = structs.CarParams.SafetyConfig()
       safety_config.safetyModel = structs.CarParams.SafetyModel.noOutput

@@ -41,6 +41,9 @@ class CarInterface(CarInterfaceBase):
     if candidate == CAR.KIA_EV4:
       from opendbc.car.carlog import carlog
       carlog.error("KIA_EV4 interface params being set")
+      print("************************************************")
+      print("!!! KIA EV4 INTERFACE LOADED SUCCESSFULLY !!!")
+      print("************************************************")
       ret.flags |= HyundaiFlags.CANFD.value
 
     if ret.flags & HyundaiFlags.CANFD:
