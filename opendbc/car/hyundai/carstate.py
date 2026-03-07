@@ -471,6 +471,7 @@ class CarState(CarStateBase):
       ("EV4_BODY_2", float('nan')),
       ("ID980", float('nan')),
       ("ID1280", float('nan')),
+      ("LKAS_ALT", float('nan')),
     ]
     # HBA/ISLA etc
     for addr in range(560, 585):

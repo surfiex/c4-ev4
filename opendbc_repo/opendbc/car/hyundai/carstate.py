@@ -289,6 +289,10 @@ class CarState(CarStateBase):
     ret.accFaulted = cp.vl["TCS"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
 
     if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
+      # EV4: Capture full LKAS_ALT for true MITM
+      if self.CP.carFingerprint == CAR.KIA_EV4:
+        self.lkas_alt_msg = copy.copy(cp_cam.vl["LKAS_ALT"])
+
       # EV4: Suppress CAM_0x16a (ID 362)
       self.lfa_block_msg = copy.copy(cp_cam.vl["CAM_0x16a"])
 
@@ -320,7 +324,6 @@ class CarState(CarStateBase):
       ("CRUISE_BUTTONS_ALT", 50),
       ("BLINDSPOTS_REAR_CORNERS", float('nan')),
       ("SCC_CONTROL", 50),
-      ("LKAS_ALT", 100),
       ("MANUAL_SPEED_LIMIT_ASSIST", float('nan')),
       # these messages are not present on the EV4 ECAN but are accessed by CarState
       ("DOORS_SEATBELTS", float('nan')),
@@ -341,6 +344,7 @@ class CarState(CarStateBase):
       ("ADRV_0x389", float('nan')),
       ("ADRV_0x165", float('nan')),
       ("ADRV_0x380", float('nan')),
+      ("LKAS_ALT", float('nan')),
     ]
     for addr in range(933, 965):
       cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))

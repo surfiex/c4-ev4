@@ -28,7 +28,7 @@ def debug_carstate():
     sm = messaging.SubMaster(['carState', 'can'])
 
     print("\n" + "="*85)
-    print(f"{'Time':>8} | {'Gear':>6} | {'Brk':>3} | {'Avail':>5} | {'Btn_Raw':>7} | {'Main_Raw':>8} | {'Signals'}")
+    print(f"{'Time':>8} | {'Gear':>6} | {'Brk':>3} | {'Avail':>5} | {'0x110':>5} | {'Btn_Raw':>7} | {'Main_Raw':>8} | {'Signals'}")
     print("-"*85)
 
     try:
@@ -40,8 +40,12 @@ def debug_carstate():
             raw_btn = -1
             raw_main = -1
             tcs_acc_enable = -1
+            lkas_alt_seen = False
 
             for msg in sm['can']:
+                if msg.address == 272: # 0x110 (LKAS_ALT)
+                    lkas_alt_seen = True
+
                 if msg.src == 1: # Bus 1
                     if msg.address == 426: # 0x1AA (CRUISE_BUTTONS_ALT)
                         # Extract signals manually from bytes (DBC: little endian)
@@ -70,8 +74,9 @@ def debug_carstate():
 
                 t = time.strftime("%H:%M:%S")
                 if time.time() - last_print > 0.05:
+                    status_110 = "OK" if lkas_alt_seen else "MISS"
                     signals = f"ACCEnable={tcs_acc_enable}"
-                    print(f"{t:>8} | {gear:>6} | {brake:>3} | {avail:>5} | {raw_btn:>7} | {raw_main:>8} | {signals}", end="\r")
+                    print(f"{t:>8} | {gear:>6} | {brake:>3} | {avail:>5} | {status_110:>5} | {raw_btn:>7} | {raw_main:>8} | {signals}", end="\r")
                     last_print = time.time()
 
     except KeyboardInterrupt:
