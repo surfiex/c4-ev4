@@ -222,9 +222,9 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint == CAR.KIA_EV4:
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
       # EV4_BODY_2 DOOR_OPEN_ANY is 0 when open, 1 when closed. If message is missing, default to Closed (1)
-      ret.doorOpen = cp_acan.vl["DOORS_SEATBELTS"].get("DRIVER_DOOR", 0) == 1
+      ret.doorOpen = cp_acan.vl["EV4_BODY_2"].get("DOOR_OPEN_ANY", 1) == 0
       # EV4_BODY_1 DRIVER_SEATBELT is 0 when unlatched, 1 when latched. Default to Latched (1)
-      ret.seatbeltUnlatched = cp_acan.vl["DOORS_SEATBELTS"].get("DRIVER_SEATBELT", 1) == 0
+      ret.seatbeltUnlatched = cp_acan.vl["EV4_BODY_1"].get("DRIVER_SEATBELT", 1) == 0
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["ACCELERATOR"]["GEAR"]
@@ -256,7 +256,9 @@ class CarState(CarStateBase):
     ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorque) > self.params.STEER_THRESHOLD, 5)
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      ret.vEgoCluster = ret.vEgo
+      # EV4_BODY_1 is a strong candidate for Cluster Speed
+      v_clu_2 = cp_acan.vl["EV4_BODY_1"]["SPEED_REF_1"] * speed_factor
+      ret.vEgoCluster = v_clu_2
 
     ret.steerFaultTemporary = cp.vl["MDPS"]["LKA_FAULT"] != 0
 
@@ -362,9 +364,10 @@ class CarState(CarStateBase):
       elif addr == 905: msg_name = "ADRV_0x389"
       elif addr == 917: msg_name = "ID917"
       elif addr == 928: msg_name = "ID928"
-      elif addr == 1041: msg_name = "DOORS_SEATBELTS"
+      elif addr == 976: msg_name = "EV4_BODY_1"
       elif addr == 977: msg_name = "ID977"
       elif addr == 978: msg_name = "ID978"
+      elif addr == 979: msg_name = "EV4_BODY_2"
       elif addr == 980: msg_name = "ID980"
       elif addr == 1280: msg_name = "ID1280"
       elif 560 <= addr <= 584:
@@ -379,7 +382,7 @@ class CarState(CarStateBase):
             self.hda2_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
     # Car -> Camera Bus
-    car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426, 1041]
+    car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426, 976, 979]
     for addr in car_to_cam_ids:
       msg_name = None
       if addr == 53: msg_name = "ACCELERATOR"
@@ -389,10 +392,11 @@ class CarState(CarStateBase):
       elif addr == 304: msg_name = "GEAR_SHIFTER"
       elif addr == 373: msg_name = "TCS"
       elif addr == 426: msg_name = "CRUISE_BUTTONS_ALT"
-      elif addr == 1041: msg_name = "DOORS_SEATBELTS"
+      elif addr == 976: msg_name = "EV4_BODY_1"
+      elif addr == 979: msg_name = "EV4_BODY_2"
 
-      # DOORS_SEATBELTS is on ACAN (Bus 0), others on ECAN (Bus 1)
-      source_cp = cp_acan if addr in [1041] else cp
+      # EV4_BODY messages are on ACAN (Bus 0), others on ECAN (Bus 1)
+      source_cp = cp_acan if addr in [976, 979] else cp
 
       if msg_name and msg_name in source_cp.vl_all:
         vl_all_msg = source_cp.vl_all[msg_name]
@@ -440,6 +444,8 @@ class CarState(CarStateBase):
         ("ACCELERATOR", 100),
         ("STEERING_SENSORS", 100),
         ("LFA_BUTTON", float('nan')),
+        ("EV4_BODY_1", float('nan')),
+        ("EV4_BODY_2", float('nan')),
         ("RADAR_TRACK_939", float('nan')),
       ]
     else:
@@ -476,8 +482,10 @@ class CarState(CarStateBase):
       ("ID865", float('nan')),
       ("ID917", float('nan')),
       ("ID928", float('nan')),
+      ("EV4_BODY_1", float('nan')),
       ("ID977", float('nan')),
       ("ID978", float('nan')),
+      ("EV4_BODY_2", float('nan')),
       ("ID980", float('nan')),
       ("ID1280", float('nan')),
       ("LKAS_ALT", float('nan')),
@@ -495,7 +503,8 @@ class CarState(CarStateBase):
     a_msgs = []
     if CP.carFingerprint == CAR.KIA_EV4:
       a_msgs += [
-        ("DOORS_SEATBELTS", float('nan')),
+        ("EV4_BODY_1", float('nan')),
+        ("EV4_BODY_2", float('nan')),
       ]
 
     a_parser = CANParser(DBC[CP.carFingerprint][self.pt_bus], a_msgs, CanBus(CP).ACAN)
