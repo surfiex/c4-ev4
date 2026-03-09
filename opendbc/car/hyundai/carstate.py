@@ -276,7 +276,11 @@ class CarState(CarStateBase):
 
     # cruise state
     # CAN FD cars enable on main button press, set available if no TCS faults preventing engagement
-    ret.cruiseState.available = cp.vl["TCS"]["ACCEnable"] == 0
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      ret.cruiseState.available = cp.vl["TCS"]["ACCEnable"] in (0, 2)
+    else:
+      ret.cruiseState.available = cp.vl["TCS"]["ACCEnable"] == 0
+    
     if self.CP.openpilotLongitudinalControl:
       # These are not used for engage/disengage since openpilot keeps track of state using the buttons
       ret.cruiseState.enabled = cp.vl["TCS"]["ACC_REQ"] == 1
@@ -307,7 +311,11 @@ class CarState(CarStateBase):
     else:
       self.lda_button = cp.vl[self.cruise_btns_msg_canfd]["LDA_BTN"]
     self.buttons_counter = cp.vl[self.cruise_btns_msg_canfd].get("COUNTER", cp.vl[self.cruise_btns_msg_canfd].get("COUNTER_T", 0))
-    ret.accFaulted = cp.vl["TCS"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
+
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      ret.accFaulted = cp.vl["TCS"]["ACCEnable"] not in (0, 2)
+    else:
+      ret.accFaulted = cp.vl["TCS"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
 
     if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
       # EV4: Capture full LKAS_ALT for true MITM
