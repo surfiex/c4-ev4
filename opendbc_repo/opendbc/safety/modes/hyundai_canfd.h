@@ -136,6 +136,7 @@ static void hyundai_canfd_rx_hook(const CANPacket_t *msg) {
     }
 
     // vehicle moving
+
     if (msg->addr == 0xa0U) {
       uint32_t fl = (GET_BYTES(msg, 8, 2)) & 0x3FFFU;
       uint32_t fr = (GET_BYTES(msg, 10, 2)) & 0x3FFFU;
