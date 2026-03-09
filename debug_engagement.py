@@ -37,6 +37,11 @@ def debug_engagement():
       if not cs.cruiseState.available:
         blockers.append("CruiseOff")
 
+      if cs.accFaulted:
+        blockers.append("AccFault")
+      if cs.blockPcmEnable:
+        blockers.append("PCM_Block")
+
       gear_str = str(cs.gearShifter)
       if "drive" not in gear_str.lower():
         blockers.append(f"Gear:{gear_str}")
