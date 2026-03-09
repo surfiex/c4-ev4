@@ -212,6 +212,7 @@ class CarState(CarStateBase):
   def update_canfd(self, can_parsers) -> structs.CarState:
     cp = can_parsers[self.pt_bus]
     cp_cam = can_parsers[Bus.cam]
+    cp_acan = can_parsers[Bus.pt]
 
     ret = structs.CarState()
 
@@ -220,8 +221,8 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
-      ret.doorOpen = cp.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 0
-      ret.seatbeltUnlatched = cp.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] != 0
+      ret.doorOpen = cp_acan.vl["EV4_BODY_2"]["DOOR_OPEN_ANY"] == 0
+      ret.seatbeltUnlatched = cp_acan.vl["EV4_BODY_1"]["DRIVER_SEATBELT"] != 0
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["ACCELERATOR"]["GEAR"]
@@ -254,7 +255,7 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
       # EV4_BODY_1 is a strong candidate for Cluster Speed
-      v_clu_2 = cp_cam.vl["EV4_BODY_1"]["SPEED_REF_1"] * speed_factor
+      v_clu_2 = cp_acan.vl["EV4_BODY_1"]["SPEED_REF_1"] * speed_factor
       ret.vEgoCluster = v_clu_2
 
     ret.steerFaultTemporary = cp.vl["MDPS"]["LKA_FAULT"] != 0
@@ -370,7 +371,7 @@ class CarState(CarStateBase):
           for i in range(len(vl_all_msg[sigs[0]])):
             self.hda2_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
-    # Car -> Camera Bus (1 -> 2)
+    # Car -> Camera Bus
     car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426, 976, 979]
     for addr in car_to_cam_ids:
       msg_name = None
@@ -384,8 +385,11 @@ class CarState(CarStateBase):
       elif addr == 976: msg_name = "EV4_BODY_1"
       elif addr == 979: msg_name = "EV4_BODY_2"
 
-      if msg_name and msg_name in cp.vl_all:
-        vl_all_msg = cp.vl_all[msg_name]
+      # EV4_BODY messages are on ACAN (Bus 0), others on ECAN (Bus 1)
+      source_cp = cp_acan if addr in [976, 979] else cp
+
+      if msg_name and msg_name in source_cp.vl_all:
+        vl_all_msg = source_cp.vl_all[msg_name]
         sigs = list(vl_all_msg.keys())
         if sigs:
           for i in range(len(vl_all_msg[sigs[0]])):
