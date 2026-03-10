@@ -722,9 +722,8 @@ BO_ 416 SCC_CONTROL: 32 XXX
  SG_ ACCMode : 68|3@1+ (1,0) [0|7] "" XXX
  SG_ CRUISE_STANDSTILL : 120|1@1+ (1,0) [0|1] "" XXX
  SG_ VSetDis : 129|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
@@ -1624,13 +1623,16 @@ BO_ 81 ADRV_0x51: 16 XXX
  SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 298 LFA: 32 XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
+ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
+ SG_ LKA_ICON : 28|4@1+ (1,0) [0|15] "" XXX
+ SG_ TORQUE_REQUEST : 32|11@1- (1,0) [-1024|1023] "" XXX
+ SG_ LKA_ASSIST : 43|1@1+ (1,0) [0|1] "" XXX
+ SG_ STEER_REQ : 44|1@1+ (1,0) [0|1] "" XXX
+ SG_ STEER_MODE : 45|3@1+ (1,0) [0|7] "" XXX
+ SG_ HAS_LANE_SAFETY : 48|1@1+ (1,0) [0|1] "" XXX
+ SG_ LKA_AVAILABLE : 27|2@1+ (1,0) [0|3] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE7 : 56|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE8 : 64|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE9 : 72|8@1+ (1,0) [0|255] "" XXX
@@ -1694,10 +1696,10 @@ BO_ 474 ADRV_0x1da: 16 XXX
  SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 480 LFAHDA_CLUSTER: 32 XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
+ SG_ HDA_ICON : 24|2@1+ (1,0) [0|3] "" XXX
+ SG_ LFA_ICON : 28|2@1+ (1,0) [0|3] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX

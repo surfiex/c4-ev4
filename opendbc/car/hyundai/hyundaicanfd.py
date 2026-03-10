@@ -86,7 +86,18 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
     # Send LFA for longitudinal cars OR if it's an EV4 needing heartbeats
     if CP.openpilotLongitudinalControl or CP.carFingerprint == "KIA_EV4":
       if CP.carFingerprint == "KIA_EV4":
-        _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ECAN, lkas_values)
+        # Fallback to BYTE signals if semantic names are missing in DBC
+        lfa_values = {
+          "LKA_MODE": lkas_values.get("LKA_MODE", 0),
+          "LKA_ICON": lkas_values.get("LKA_ICON", 0),
+          "TORQUE_REQUEST": lkas_values.get("TORQUE_REQUEST", 0),
+          "LKA_ASSIST": lkas_values.get("LKA_ASSIST", 0),
+          "STEER_REQ": lkas_values.get("STEER_REQ", 0),
+          "STEER_MODE": lkas_values.get("STEER_MODE", 0),
+          "HAS_LANE_SAFETY": lkas_values.get("HAS_LANE_SAFETY", 0),
+          "LKA_AVAILABLE": lkas_values.get("LKA_AVAILABLE", 0),
+        }
+        _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ECAN, lfa_values)
         dat = bytearray(dat_raw)
         crc = hkg_can_fd_checksum(298, None, dat)
         dat[0] = crc & 0xFF
@@ -144,27 +155,21 @@ def create_buttons(packer, CP, CAN, cnt, btn):
 
 def create_acc_cancel(packer, CP, CAN, cruise_info_copy):
   # TODO: why do we copy different values here?
+  values = {
+    "COUNTER": cruise_info_copy.get("COUNTER", 0),
+    "CHECKSUM": cruise_info_copy.get("CHECKSUM", 0),
+    "ACCMode": cruise_info_copy.get("ACCMode", 0),
+    "VSetDis": cruise_info_copy.get("VSetDis", 0),
+    "CRUISE_STANDSTILL": cruise_info_copy.get("CRUISE_STANDSTILL", 0),
+  }
   if CP.flags & HyundaiFlags.CANFD_CAMERA_SCC.value:
-    values = {s: cruise_info_copy[s] for s in [
-      "COUNTER",
-      "CHECKSUM",
-      "NEW_SIGNAL_1",
-      "MainMode_ACC",
-      "ACCMode",
-      "ZEROS_9",
-      "CRUISE_STANDSTILL",
-      "ZEROS_5",
-      "DISTANCE_SETTING",
-      "VSetDis",
-    ]}
-  else:
-    values = {s: cruise_info_copy[s] for s in [
-      "COUNTER",
-      "CHECKSUM",
-      "ACCMode",
-      "VSetDis",
-      "CRUISE_STANDSTILL",
-    ]}
+    values.update({
+      "NEW_SIGNAL_1": cruise_info_copy.get("NEW_SIGNAL_1", 0),
+      "MainMode_ACC": cruise_info_copy.get("MainMode_ACC", 0),
+      "ZEROS_9": cruise_info_copy.get("ZEROS_9", 0),
+      "ZEROS_5": cruise_info_copy.get("ZEROS_5", 0),
+      "DISTANCE_SETTING": cruise_info_copy.get("DISTANCE_SETTING", 0),
+    })
   values.update({
     "ACCMode": 4,
     "aReqRaw": 0.0,
@@ -180,23 +185,12 @@ def create_acc_cancel(packer, CP, CAN, cruise_info_copy):
   return packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
 
 
-def create_lfahda_cluster(packer, CAN, enabled, cnt=None):
+def create_lfahda_cluster(packer, CAN, enabled, frame):
   values = {
     "HDA_ICON": 1, # white
     "LFA_ICON": 2 if enabled else 1, # 2: green, 1: white
-    # EV4 cluster validates bytes 8-15; stock value: fe f7 0f 00 00 00 f0 bf
-    "BYTE8": 0xfe,
-    "BYTE9": 0xf7,
-    "BYTE10": 0x0f,
-    "BYTE11": 0x00,
-    "BYTE12": 0x00,
-    "BYTE13": 0x00,
-    "BYTE14": 0xf0,
-    "BYTE15": 0xbf,
+    "COUNTER": frame % 256,
   }
-
-  if cnt is not None:
-    values["COUNTER"] = cnt % 256
   # CHECKSUM is manually calculated for EV4
   _, dat_raw, _ = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
   dat = bytearray(dat_raw)
@@ -206,7 +200,7 @@ def create_lfahda_cluster(packer, CAN, enabled, cnt=None):
   return [480, bytes(dat), CAN.ECAN]
 
 
-def create_acc_control(packer, CAN, enabled, accel_last, accel, stopping, gas_override, set_speed, hud_control):
+def create_acc_control(packer, CAN, CP, enabled, accel_last, accel, stopping, gas_override, set_speed, hud_control):
   jerk = 5
   jn = jerk / 50
   if not enabled or gas_override:
@@ -234,6 +228,13 @@ def create_acc_control(packer, CAN, enabled, accel_last, accel, stopping, gas_ov
     "DISTANCE_SETTING": hud_control.leadDistanceBars,
   }
 
+  if CP.carFingerprint == "KIA_EV4":
+    _, dat_raw, _ = packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
+    dat = bytearray(dat_raw)
+    crc = hkg_can_fd_checksum(416, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    return [416, bytes(dat), CAN.ECAN]
   return packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
 
 

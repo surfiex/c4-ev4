@@ -73,9 +73,27 @@ lkas_alt_signals = """ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
 
 # BODY and BUTTON signals to restore
 extra_signals = {
+  298: """ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
+ SG_ LKA_ICON : 28|4@1+ (1,0) [0|15] "" XXX
+ SG_ TORQUE_REQUEST : 32|11@1- (1,0) [-1024|1023] "" XXX
+ SG_ LKA_ASSIST : 43|1@1+ (1,0) [0|1] "" XXX
+ SG_ STEER_REQ : 44|1@1+ (1,0) [0|1] "" XXX
+ SG_ STEER_MODE : 45|3@1+ (1,0) [0|7] "" XXX
+ SG_ HAS_LANE_SAFETY : 48|1@1+ (1,0) [0|1] "" XXX
+ SG_ LKA_AVAILABLE : 27|2@1+ (1,0) [0|3] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+""",
+  480: """ SG_ HDA_ICON : 24|2@1+ (1,0) [0|3] "" XXX
+ SG_ LFA_ICON : 28|2@1+ (1,0) [0|3] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+""",
   416: """ SG_ ACCMode : 68|3@1+ (1,0) [0|7] "" XXX
  SG_ CRUISE_STANDSTILL : 120|1@1+ (1,0) [0|1] "" XXX
  SG_ VSetDis : 129|8@1+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
 """,
   864: """ SG_ LEFT_BLINKER : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ RIGHT_BLINKER : 8|8@1+ (1,0) [0|255] "" XXX
@@ -123,7 +141,11 @@ for line in lines:
               continue
             if msg_id == 864 and i in [0, 1, 2]:
               continue
-            if msg_id == 416 and i in [8, 15, 16]:
+            if msg_id == 416 and i in [0, 1, 2, 8, 15, 16]:
+              continue
+            if msg_id == 298 and i in [0, 1, 2, 3, 4, 5, 6]:
+              continue
+            if msg_id == 480 and i in [0, 1, 2, 3]:
               continue
 
             new_lines.append(f' SG_ BYTE{i} : {i * 8}|8@1+ (1,0) [0|255] "" XXX\n')
@@ -151,7 +173,11 @@ for msg_id, length in ids_to_expand.items():
         continue
       if msg_id == 864 and i in [0, 1, 2]:
         continue
-      if msg_id == 416 and i in [8, 15, 16]:
+      if msg_id == 416 and i in [0, 1, 2, 8, 15, 16]:
+        continue
+      if msg_id == 298 and i in [0, 1, 2, 3, 4, 5, 6]:
+        continue
+      if msg_id == 480 and i in [0, 1, 2, 3]:
         continue
       new_lines.append(f' SG_ BYTE{i} : {i * 8}|8@1+ (1,0) [0|255] "" XXX\n')
 
