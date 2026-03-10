@@ -103,7 +103,7 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
       # 3. Queue for ACAN (Bus 0)
       ret.append([0x110, bytes(dat), CAN.ACAN])
       # 4. Queue for ECAN (Bus 1) to satisfy ADAS ECU
-      ret.append([0x110, bytes(dat), CAN.ECAN])
+      # ret.append([0x110, bytes(dat), CAN.ECAN])  # EV4: Skip sending to ECAN to avoid conflict with ADAS ECU
     else:
       ret.append(packer.make_can_msg(lkas_msg, CAN.ACAN, lkas_values))
   else:

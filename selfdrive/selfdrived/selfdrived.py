@@ -280,7 +280,7 @@ class SelfdriveD:
       # safety mismatch allows some time for pandad to set the safety mode and publish it back from panda
       is_ev4 = self.CP.carFingerprint == "KIA_EV4"
       if self.sm.frame % 100 == 0:
-        print(f"DEBUG [selfdrived]: carFingerprint={self.CP.carFingerprint}, is_ev4={is_ev4}, mismatch={safety_mismatch}")
+        print(f"DEBUG [selfdrived]: carFingerprint={self.CP.carFingerprint}, is_ev4={is_ev4}, mismatch={safety_mismatch}, rx_invalid={pandaState.safetyRxChecksInvalid}")
       if not is_ev4 and ((safety_mismatch and self.sm.frame*DT_CTRL > 10.) or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200):
         self.events.add(EventName.controlsMismatch)
 
