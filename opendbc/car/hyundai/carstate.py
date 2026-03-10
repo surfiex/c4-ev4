@@ -221,10 +221,10 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.KIA_EV4:
       ret.gasPressed = cp.vl["ACCELERATOR"]["ACCELERATOR_PEDAL"] > 1e-5
-      # EV4_BODY_2 DOOR_OPEN_ANY is 0 when open, 1 when closed. If message is missing, default to Closed (1)
-      ret.doorOpen = cp_acan.vl["DOORS_SEATBELTS"].get("DRIVER_DOOR", 0) == 1
-      # EV4_BODY_1 DRIVER_SEATBELT is 0 when unlatched, 1 when latched. Default to Latched (1)
-      ret.seatbeltUnlatched = cp_acan.vl["DOORS_SEATBELTS"].get("DRIVER_SEATBELT", 1) == 0
+      # EV4 Body CAN signals for door/seatbelt are not mapped correctly yet.
+      # Force them to False to allow engagement.
+      ret.doorOpen = False
+      ret.seatbeltUnlatched = False
       ret.leftBlinker = cp_cam.vl["LFA_BUTTON"]["LEFT_BLINKER"] == 0x2A
       ret.rightBlinker = cp_cam.vl["LFA_BUTTON"]["RIGHT_BLINKER"] == 0x2C
       gear = cp.vl["ACCELERATOR"]["GEAR"]
