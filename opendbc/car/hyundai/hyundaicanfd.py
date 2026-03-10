@@ -85,10 +85,26 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
 
     # Send LFA only for longitudinal cars
     if CP.openpilotLongitudinalControl:
-      ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
+      if CP.carFingerprint == "KIA_EV4":
+        _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ECAN, lkas_values)
+        dat = bytearray(dat_raw)
+        crc = hkg_can_fd_checksum(298, None, dat)
+        dat[0] = crc & 0xFF
+        dat[1] = (crc >> 8) & 0xFF
+        ret.append([298, bytes(dat), CAN.ECAN])
+      else:
+        ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
 
   else:
-    ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
+    if CP.carFingerprint == "KIA_EV4":
+      _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ECAN, lkas_values)
+      dat = bytearray(dat_raw)
+      crc = hkg_can_fd_checksum(298, None, dat)
+      dat[0] = crc & 0xFF
+      dat[1] = (crc >> 8) & 0xFF
+      ret.append([298, bytes(dat), CAN.ECAN])
+    else:
+      ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
 
   return ret
 
@@ -107,7 +123,12 @@ def create_suppress_lfa(packer, CAN, lfa_block_msg, lka_steering_alt, car_finger
 
   # EV4: Send to ECAN (Bus 1) where ADAS ECU lives.
   bus = CAN.ECAN if car_fingerprint == "KIA_EV4" else CAN.ACAN
-  return packer.make_can_msg(suppress_msg, bus, values)
+  _, dat_raw, _ = packer.make_can_msg(suppress_msg, bus, values)
+  dat = bytearray(dat_raw)
+  crc = hkg_can_fd_checksum(866 if lka_steering_alt else 676, None, dat)
+  dat[0] = crc & 0xFF
+  dat[1] = (crc >> 8) & 0xFF
+  return [866 if lka_steering_alt else 676, bytes(dat), bus]
 
 
 def create_buttons(packer, CP, CAN, cnt, btn):
@@ -149,6 +170,13 @@ def create_acc_cancel(packer, CP, CAN, cruise_info_copy):
     "aReqRaw": 0.0,
     "aReqValue": 0.0,
   })
+  if CP.carFingerprint == "KIA_EV4":
+    _, dat_raw, _ = packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
+    dat = bytearray(dat_raw)
+    crc = hkg_can_fd_checksum(416, None, dat)
+    dat[0] = crc & 0xFF
+    dat[1] = (crc >> 8) & 0xFF
+    return [416, bytes(dat), CAN.ECAN]
   return packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
 
 
@@ -169,9 +197,13 @@ def create_lfahda_cluster(packer, CAN, enabled, cnt=None):
 
   if cnt is not None:
     values["COUNTER"] = cnt % 256
-  # CHECKSUM is auto-calculated by CANPacker (KIA_EV4_v19 is registered in dbc.py)
-
-  return packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
+  # CHECKSUM is manually calculated for EV4
+  _, dat_raw, _ = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
+  dat = bytearray(dat_raw)
+  crc = hkg_can_fd_checksum(480, None, dat)
+  dat[0] = crc & 0xFF
+  dat[1] = (crc >> 8) & 0xFF
+  return [480, bytes(dat), CAN.ECAN]
 
 
 def create_acc_control(packer, CAN, enabled, accel_last, accel, stopping, gas_override, set_speed, hud_control):
