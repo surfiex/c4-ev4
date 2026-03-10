@@ -279,7 +279,7 @@ class SelfdriveD:
 
       # safety mismatch allows some time for pandad to set the safety mode and publish it back from panda
       is_ev4 = self.CP.carFingerprint == "KIA EV4"
-      if (safety_mismatch and self.sm.frame*DT_CTRL > 10.) or pandaState.safetyRxChecksInvalid or (self.mismatch_counter >= 200 and not is_ev4):
+      if not is_ev4 and ((safety_mismatch and self.sm.frame*DT_CTRL > 10.) or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200):
         self.events.add(EventName.controlsMismatch)
 
       if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
@@ -356,7 +356,8 @@ class SelfdriveD:
       # Check for mismatch between openpilot and car's PCM
       cruise_mismatch = CS.cruiseState.enabled and (not self.enabled or not self.CP.pcmCruise)
       self.cruise_mismatch_counter = self.cruise_mismatch_counter + 1 if cruise_mismatch else 0
-      if self.cruise_mismatch_counter > int(6. / DT_CTRL):
+      is_ev4 = self.CP.carFingerprint == "KIA EV4"
+      if self.cruise_mismatch_counter > int(6. / DT_CTRL) and not is_ev4:
         self.events.add(EventName.cruiseMismatch)
 
     # Send a "steering required alert" if saturation count has reached the limit
