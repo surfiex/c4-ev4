@@ -97,23 +97,23 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
           "HAS_LANE_SAFETY": lkas_values.get("HAS_LANE_SAFETY", 0),
           "LKA_AVAILABLE": lkas_values.get("LKA_AVAILABLE", 0),
         }
-        _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ECAN, lfa_values)
+        _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ACAN, lfa_values)
         dat = bytearray(dat_raw)
         crc = hkg_can_fd_checksum(298, None, dat)
         dat[0] = crc & 0xFF
         dat[1] = (crc >> 8) & 0xFF
-        ret.append([298, bytes(dat), CAN.ECAN])
+        ret.append([298, bytes(dat), CAN.ACAN])
       else:
-        ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
+        ret.append(packer.make_can_msg("LFA", CAN.ACAN, lkas_values))
 
   else:
     if CP.carFingerprint == "KIA_EV4":
-      _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ECAN, lkas_values)
+      _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ACAN, lkas_values)
       dat = bytearray(dat_raw)
       crc = hkg_can_fd_checksum(298, None, dat)
       dat[0] = crc & 0xFF
       dat[1] = (crc >> 8) & 0xFF
-      ret.append([298, bytes(dat), CAN.ECAN])
+      ret.append([298, bytes(dat), CAN.ACAN])
     else:
       ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
 
@@ -176,13 +176,13 @@ def create_acc_cancel(packer, CP, CAN, cruise_info_copy):
     "aReqValue": 0.0,
   })
   if CP.carFingerprint == "KIA_EV4":
-    _, dat_raw, _ = packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
+    _, dat_raw, _ = packer.make_can_msg("SCC_CONTROL", CAN.ACAN, values)
     dat = bytearray(dat_raw)
     crc = hkg_can_fd_checksum(416, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    return [416, bytes(dat), CAN.ECAN]
-  return packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
+    return [416, bytes(dat), CAN.ACAN]
+  return packer.make_can_msg("SCC_CONTROL", CAN.ACAN, values)
 
 
 def create_lfahda_cluster(packer, CAN, enabled, frame):
@@ -192,12 +192,12 @@ def create_lfahda_cluster(packer, CAN, enabled, frame):
     "COUNTER": frame % 256,
   }
   # CHECKSUM is manually calculated for EV4
-  _, dat_raw, _ = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ECAN, values)
+  _, dat_raw, _ = packer.make_can_msg("LFAHDA_CLUSTER", CAN.ACAN, values)
   dat = bytearray(dat_raw)
   crc = hkg_can_fd_checksum(480, None, dat)
   dat[0] = crc & 0xFF
   dat[1] = (crc >> 8) & 0xFF
-  return [480, bytes(dat), CAN.ECAN]
+  return [480, bytes(dat), CAN.ACAN]
 
 
 def create_acc_control(packer, CAN, CP, enabled, accel_last, accel, stopping, gas_override, set_speed, hud_control):
@@ -229,13 +229,13 @@ def create_acc_control(packer, CAN, CP, enabled, accel_last, accel, stopping, ga
   }
 
   if CP.carFingerprint == "KIA_EV4":
-    _, dat_raw, _ = packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
+    _, dat_raw, _ = packer.make_can_msg("SCC_CONTROL", CAN.ACAN, values)
     dat = bytearray(dat_raw)
     crc = hkg_can_fd_checksum(416, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    return [416, bytes(dat), CAN.ECAN]
-  return packer.make_can_msg("SCC_CONTROL", CAN.ECAN, values)
+    return [416, bytes(dat), CAN.ACAN]
+  return packer.make_can_msg("SCC_CONTROL", CAN.ACAN, values)
 
 
 def create_spas_messages(packer, CAN, left_blink, right_blink):
@@ -340,7 +340,7 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     crc = hkg_can_fd_checksum(0x160, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    ret.append([0x160, bytes(dat), CAN.ECAN])
+    ret.append([0x160, bytes(dat), CAN.ACAN])
 
   if frame % 5 == 0:
     cnt_20hz = (frame // 5) % 256
@@ -356,7 +356,7 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     crc = hkg_can_fd_checksum(0x1ea, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    ret.append([0x1ea, bytes(dat), CAN.ECAN])
+    ret.append([0x1ea, bytes(dat), CAN.ACAN])
 
     # 0x200 (512) 20Hz
     values = {}
@@ -368,7 +368,7 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     crc = hkg_can_fd_checksum(0x200, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    ret.append([0x200, bytes(dat), CAN.ECAN])
+    ret.append([0x200, bytes(dat), CAN.ACAN])
 
   if frame % 20 == 0:
     # 0x345 (837) 5Hz
@@ -382,7 +382,7 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     crc = hkg_can_fd_checksum(0x345, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    ret.append([0x345, bytes(dat), CAN.ECAN])
+    ret.append([0x345, bytes(dat), CAN.ACAN])
 
     # 0x330 (816) 5Hz - scene/radar status (counter rate = 10Hz → +2 per 5Hz send)
     cnt_10hz = (frame // 10) % 256
@@ -399,15 +399,15 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     crc = hkg_can_fd_checksum(0x330, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    ret.append([0x330, bytes(dat), CAN.ECAN])
+    ret.append([0x330, bytes(dat), CAN.ACAN])
 
     # 0x32b (811) 5Hz - completely static from vehicle log (counter never changes)
     dat_32b = bytes.fromhex("d4100a0000000080000000000000004000002100000000000000000000000000")
-    ret.append([0x32b, dat_32b, CAN.ECAN])
+    ret.append([0x32b, dat_32b, CAN.ACAN])
 
     # 0x32d (813) 5Hz - completely static from vehicle log (counter never changes)
     dat_32d = bytes.fromhex("b5a70b0000000080000000000000000000000440040000000000210000000000")
-    ret.append([0x32d, dat_32d, CAN.ECAN])
+    ret.append([0x32d, dat_32d, CAN.ACAN])
 
   if frame % 100 == 0:
     # 0x1da (474) 1Hz
@@ -420,7 +420,7 @@ def create_adrv_messages_ev4(packer, CAN, frame):
     crc = hkg_can_fd_checksum(0x1da, None, dat)
     dat[0] = crc & 0xFF
     dat[1] = (crc >> 8) & 0xFF
-    ret.append([0x1da, bytes(dat), CAN.ECAN])
+    ret.append([0x1da, bytes(dat), CAN.ACAN])
 
   return ret
 

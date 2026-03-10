@@ -60,6 +60,9 @@ class CarState(CarStateBase):
     self.buttons_counter = 0
     self.lkas_alt_msg = {}
     self.cruise_info = {}
+    self.hda2_forward_msgs = []
+    self.adas_forward_msgs = []
+    self.car_to_cam_forward_msgs = []
 
     # On some cars, CLU15->CF_Clu_VehicleSpeed can oscillate faster than the dash updates. Sample at 5 Hz
     self.cluster_speed = 0
@@ -361,6 +364,33 @@ class CarState(CarStateBase):
           for i in range(len(vl_all_msg[sigs[0]])):
             self.hda2_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
+    # HDA2 Forwarding: Save messages from ADAS ECU (Bus 1) to be forwarded to Bus 0 (Car)
+    # This is essential to avoid "Smart Cruise Control" and "Lane Safety" errors on the cluster.
+    self.adas_forward_msgs = []
+    if self.CP.carFingerprint == CAR.KIA_EV4:
+      adas_ids = [0x51, 0x12a, 0x160, 0x1a0, 0x1da, 0x1e0, 0x1ea, 0x200, 0x32b, 0x32d, 0x330, 0x345]
+      for addr in adas_ids:
+        msg_name = None
+        if addr == 0x51: msg_name = "ADRV_0x51"
+        elif addr == 0x12a: msg_name = "LFA"
+        elif addr == 0x160: msg_name = "ADRV_0x160"
+        elif addr == 0x1a0: msg_name = "SCC_CONTROL"
+        elif addr == 0x1da: msg_name = "ADRV_0x1da"
+        elif addr == 0x1e0: msg_name = "LFAHDA_CLUSTER"
+        elif addr == 0x1ea: msg_name = "ADRV_0x1ea"
+        elif addr == 0x200: msg_name = "ADRV_0x200"
+        elif addr == 0x32b: msg_name = "ADRV_0x32b"
+        elif addr == 0x32d: msg_name = "ADRV_0x32d"
+        elif addr == 0x330: msg_name = "ADRV_0x330"
+        elif addr == 0x345: msg_name = "ADRV_0x345"
+
+        if msg_name and msg_name in cp.vl_all:
+          vl_all_msg = cp.vl_all[msg_name]
+          sigs = list(vl_all_msg.keys())
+          if sigs:
+            for i in range(len(vl_all_msg[sigs[0]])):
+              self.adas_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
+
     # Car -> Camera Bus
     car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426, 864, 1041]
     for addr in car_to_cam_ids:
@@ -425,6 +455,18 @@ class CarState(CarStateBase):
         ("STEERING_SENSORS", 100),
         ("LFA_BUTTON", float('nan')),
         ("RADAR_TRACK_939", float('nan')),
+        ("ADRV_0x51", float('nan')),
+        ("LFA", float('nan')),
+        ("ADRV_0x160", float('nan')),
+        ("SCC_CONTROL", float('nan')),
+        ("ADRV_0x1da", float('nan')),
+        ("LFAHDA_CLUSTER", float('nan')),
+        ("ADRV_0x1ea", float('nan')),
+        ("ADRV_0x200", float('nan')),
+        ("ADRV_0x32b", float('nan')),
+        ("ADRV_0x32d", float('nan')),
+        ("ADRV_0x330", float('nan')),
+        ("ADRV_0x345", float('nan')),
       ]
     else:
       msgs += [

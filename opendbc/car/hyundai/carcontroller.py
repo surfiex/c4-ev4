@@ -200,15 +200,9 @@ class CarController(CarControllerBase):
                                                          set_speed_in_units, hud_control))
         self.accel_last = accel
     else:
-      # HDA2 needs ADRV heartbeats even for lateral-only
-      if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
-        if self.CP.carFingerprint == CAR.KIA_EV4:
-          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
-          # Neutral SCC_CONTROL heartbeat for EV4 when longitudinal is disabled
-          if self.frame % 2 == 0:
-            can_sends.append(hyundaicanfd.create_acc_cancel(self.packer, self.CP, self.CAN, CS.cruise_info))
-        else:
-          can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
+      # HDA2: Longitudinal is disabled. We transparently forward SCC_CONTROL and ADRV heartbeats.
+      # No need for create_acc_cancel or create_adrv_messages_ev4 here.
+      pass
 
       # button presses
       if (self.frame - self.last_button_frame) * DT_CTRL > 0.25:
@@ -234,29 +228,48 @@ class CarController(CarControllerBase):
 
     # HDA2 Forwarding: Forward saved messages between camera bus and car bus
     if lka_steering:
+      # Camera -> ADAS ECU (Bus 2 -> Bus 1)
       for msg_name, msg_values in CS.hda2_forward_msgs:
         if self.CP.carFingerprint == CAR.KIA_EV4:
-          # BLOCK LIST for EV4 MITM replacement
-          # We ALWAYS block these because Openpilot consistently sends its own heartbeats/overrides for them.
+          # BLOCK LIST for EV4 Camera -> ADAS ECU (Bus 2 -> Bus 1)
+          # We block these so the ADAS ECU doesn't try to steer/brake while OP is active
           block_list = ["CAM_0x362", "CAM_0x2a4", "CAM_0x363", "CAM_0x364", "LFA", "SCC_CONTROL", "LFAHDA_CLUSTER"]
-          
           if any(x in msg_name for x in block_list):
             continue
-
-          # KIA_EV4: Restrict camera forwarding to ECAN (Bus 1) only.
-          # ACAN (Bus 0) is extremely sensitive to ADAS traffic and will fault if redundant data is found.
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
         else:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 
-      # Send LFA suppression to ADAS ECU (on ECAN)
+      # ADAS ECU -> Car (Bus 1 -> Bus 0)
+      if self.CP.carFingerprint == CAR.KIA_EV4:
+        # Block messages that Openpilot is overriding to avoid bus collisions
+        # We always block LFA, LFAHDA_CLUSTER, and LKAS_ALT to allow OP steering and custom cluster icons.
+        block_list = ["LFA", "LFAHDA_CLUSTER", "LKAS_ALT", "0x110"]
+        
+        # If OP longitudinal is active, we also block SCC_CONTROL and ADRV heartbeats to avoid conflicts
+        if self.CP.openpilotLongitudinalControl:
+          block_list += ["SCC_CONTROL", "ADRV_0x51", "ADRV_0x160", "ADRV_0x1ea", "ADRV_0x200", 
+                        "ADRV_0x345", "ADRV_0x330", "ADRV_0x32b", "ADRV_0x32d", "ADRV_0x1da"]
+        
+        for msg_name, msg_values in CS.adas_forward_msgs:
+          if any(x in msg_name for x in block_list):
+            continue
+          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
+
+      # Camera -> ACAN (Bus 2 -> Bus 0) - Only for messages not handled by ADAS ECU
+      # (Currently all necessary Camera traffic is handled by ADAS or OP overrides)
+
+      # Send LFA suppression to ADAS ECU (on ECAN / Bus 1)
       if self.CP.carFingerprint == CAR.KIA_EV4 and self.frame % 5 == 0:
         can_sends.append(hyundaicanfd.create_suppress_lfa(self.packer, self.CAN, CS.lfa_block_msg,
                                                           self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT,
                                                           self.CP.carFingerprint))
 
+      # Car -> Camera Bus (Bus 1 -> Bus 2 or Bus 0 -> Bus 2)
       if self.CP.carFingerprint == CAR.KIA_EV4:
         for msg_name, msg_values in CS.car_to_cam_forward_msgs:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.CAM, msg_values))
+          # ALSO forward to ADAS ECU (Bus 1 / ECAN)
+          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 
     return can_sends
