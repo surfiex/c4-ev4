@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 
 dbc_path = 'opendbc/dbc/KIA_EV4_v19.dbc'
 if not os.path.exists(dbc_path):
@@ -9,7 +10,8 @@ if not os.path.exists(dbc_path):
 with open(dbc_path, 'r', encoding='latin-1') as f:
   lines = f.readlines()
 
-# All IDs seen on Bus 2 (Camera Bus) in the fingerprint with CORRECT lengths and NAMES
+# All IDs seen on Bus 2 (Camera Bus) and Bus 1 (ADAS Bus)
+# Mapping: msg_id -> (length, name)
 ids_to_expand = {
   81: (16, "ADRV_0x51"),
   160: (24, "WHEEL_SPEEDS"),
@@ -24,6 +26,7 @@ ids_to_expand = {
   373: (16, "TCS"),
   416: (32, "SCC_CONTROL"),
   437: (32, "CAMERA_0x1b5"),
+  442: (24, "BLINDSPOTS_REAR_CORNERS"),
   474: (16, "ADRV_0x1da"),
   480: (32, "LFAHDA_CLUSTER"),
   490: (32, "ADRV_0x1ea"),
@@ -49,22 +52,22 @@ ids_to_expand = {
   978: (32, "ID978"),
   979: (32, "EV4_BODY_2"),
   980: (32, "ID980"),
+  1041: (8, "DOORS_SEATBELTS"),
   1280: (16, "ID1280"),
 }
 
-# HBA/ISLA range 0x230-0x248 (560-584)
+# Add HBA/RADAR range (560-584)
 for i in range(560, 585):
-  if i == 560:
-    ids_to_expand[i] = (16, f"HBA_0x{i:03x}")
-  else:
-    ids_to_expand[i] = (32, f"HBA_0x{i:03x}")
+  name = "RADAR_0x240" if i == 576 else f"HBA_0x{i:03x}"
+  ids_to_expand[i] = (16 if i == 560 else 32, name)
 
-# Radar Tracks 933-964
+# Add Radar Tracks (933-964)
 for i in range(933, 965):
   ids_to_expand[i] = (24, f"RADAR_TRACK_{i}")
 
-# Steering signals to restore
-lkas_alt_signals = """ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
+# Custom signal definitions
+extra_signals = {
+  272: """ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
  SG_ LKA_ICON : 28|4@1+ (1,0) [0|15] "" XXX
  SG_ TORQUE_REQUEST : 32|11@1- (1,0) [-1024|1023] "" XXX
  SG_ LKA_ASSIST : 43|1@1+ (1,0) [0|1] "" XXX
@@ -74,10 +77,7 @@ lkas_alt_signals = """ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
  SG_ LKA_AVAILABLE : 27|2@1+ (1,0) [0|3] "" XXX
  SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
  SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
-"""
-
-# BODY and BUTTON signals to restore
-extra_signals = {
+""",
   298: """ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
  SG_ LKA_ICON : 28|4@1+ (1,0) [0|15] "" XXX
  SG_ TORQUE_REQUEST : 32|11@1- (1,0) [-1024|1023] "" XXX
@@ -113,60 +113,63 @@ extra_signals = {
 """,
 }
 
-new_lines = []
-skip_signals = False
-processed_ids = set()
+# Parse existing BO_ blocks into a unique dictionary to prevent duplicates
+messages = {}
+current_msg_id = None
+header_lines = [] # Pre-BO_ lines
 
-for line in lines:
+i = 0
+while i < len(lines):
+  line = lines[i]
   if line.startswith('BO_ '):
-    skip_signals = False
     parts = line.split()
     if len(parts) >= 2:
       try:
-        msg_id = int(parts[1].strip(':'))
-        if msg_id in ids_to_expand:
-          length, name = ids_to_expand[msg_id]
-          new_lines.append(f"BO_ {msg_id} {name}: {length} XXX\n")
-          if msg_id == 272:
-            new_lines.append(lkas_alt_signals)
-          if msg_id in extra_signals:
-            new_lines.append(extra_signals[msg_id])
-          for i in range(length):
-            # Bit overlap prevention logic
-            if msg_id == 976 and i in [0, 1, 2]: continue
-            if msg_id == 979 and i == 0: continue
-            if msg_id == 864 and i in [0, 1, 2]: continue
-            if msg_id == 416 and i in [0, 1, 2, 8, 9, 12, 16, 17, 18, 19, 20]: continue
-            if msg_id == 298 and i in [0, 1, 2, 3, 4, 5, 6]: continue
-            if msg_id == 480 and i in [0, 1, 2, 3]: continue
-
-            new_lines.append(f' SG_ BYTE{i} : {i * 8}|8@1+ (1,0) [0|255] "" XXX\n')
-          skip_signals = True
-          processed_ids.add(msg_id)
-          continue
-      except:
+        current_msg_id = int(parts[1].strip(':'))
+        if current_msg_id not in messages:
+            messages[current_msg_id] = [line]
+            i += 1
+            while i < len(lines) and (not lines[i].strip() or lines[i].startswith(' ') or lines[i].startswith('SG_ ')):
+              if lines[i].strip() or lines[i].startswith(' ') or lines[i].startswith('SG_ '):
+                 messages[current_msg_id].append(lines[i])
+              i += 1
+            continue
+        else:
+            # Duplicate section found for current_msg_id. SKIP IT completely.
+            i += 1
+            while i < len(lines) and (not lines[i].strip() or lines[i].startswith(' ') or lines[i].startswith('SG_ ')):
+              i += 1
+            continue
+      except ValueError:
         pass
-  if skip_signals and line.strip().startswith('SG_ '):
-    continue
-  new_lines.append(line)
+  elif not messages:
+    header_lines.append(line)
+  i += 1
 
-for msg_id, info in ids_to_expand.items():
-  if msg_id not in processed_ids:
-    length, name = info
-    new_lines.append(f"\nBO_ {msg_id} {name}: {length} XXX\n")
-    if msg_id == 272:
-      new_lines.append(lkas_alt_signals)
-    if msg_id in extra_signals:
-      new_lines.append(extra_signals[msg_id])
-    for i in range(length):
-      if msg_id == 976 and i in [0, 1, 2]: continue
-      if msg_id == 979 and i == 0: continue
-      if msg_id == 864 and i in [0, 1, 2]: continue
-      if msg_id == 416 and i in [0, 1, 2, 8, 9, 12, 16, 17, 18, 19, 20]: continue
-      if msg_id == 298 and i in [0, 1, 2, 3, 4, 5, 6]: continue
-      if msg_id == 480 and i in [0, 1, 2, 3]: continue
-      new_lines.append(f' SG_ BYTE{i} : {i * 8}|8@1+ (1,0) [0|255] "" XXX\n')
+# Process expansions - Override existing or Add new
+for msg_id, (length, name) in ids_to_expand.items():
+  msg_lines = [f"BO_ {msg_id} {name}: {length} XXX\n"]
+  if msg_id in extra_signals:
+    msg_lines.append(extra_signals[msg_id])
+  
+  # Add generic BYTE signals while avoiding overlaps
+  for b in range(length):
+    if msg_id == 272 and b in [0, 1, 2, 3, 4, 5, 6]: continue
+    if msg_id == 298 and b in [0, 1, 2, 3, 4, 5, 6]: continue
+    if msg_id == 480 and b in [0, 1, 2, 3]: continue
+    if msg_id == 416 and b in [0, 1, 2, 8, 9, 12, 16, 17, 18, 19, 20]: continue
+    if msg_id == 864 and b in [0, 1, 2]: continue
+    if msg_id == 976 and b in [0, 1, 2]: continue
+    if msg_id == 979 and b in [0]: continue
+    msg_lines.append(f' SG_ BYTE{b} : {b * 8}|8@1+ (1,0) [0|255] "" XXX\n')
+  
+  messages[msg_id] = msg_lines
 
+# Write back
 with open(dbc_path, 'w', encoding='latin-1') as f:
-  f.writelines(new_lines)
-print(f"DBC expanded with restored signals for {len(ids_to_expand)} IDs.")
+  f.writelines(header_lines)
+  for msg_id in sorted(messages.keys()):
+    f.writelines(messages[msg_id])
+    f.write('\n')
+
+print(f"DBC cleaned and expanded. Total unique messages: {len(messages)}")
