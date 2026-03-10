@@ -96,16 +96,16 @@ def create_suppress_lfa(packer, CAN, lfa_block_msg, lka_steering_alt, car_finger
   suppress_msg = "CAM_0x362" if lka_steering_alt else "CAM_0x2a4"
   msg_bytes = 32 if lka_steering_alt else 24
 
-  values = {f"BYTE{i}": lfa_block_msg.get(f"BYTE{i}", 0) for i in range(3, msg_bytes) if i != 7}
-  values["COUNTER"] = lfa_block_msg.get("COUNTER", lfa_block_msg.get("BYTE2", 0))
-  values["CHECKSUM"] = lfa_block_msg.get("CHECKSUM", lfa_block_msg.get("BYTE0", 0))
-  values["SET_ME_0"] = 0
-  values["SET_ME_0_2"] = 0
-  values["LEFT_LANE_LINE"] = 0
-  values["RIGHT_LANE_LINE"] = 0
+  # Use only BYTEi signals for raw compatibility with EV4 DBC
+  values = {f"BYTE{i}": lfa_block_msg.get(f"BYTE{i}", 0) for i in range(msg_bytes)}
+  
+  # Suppression: Zero out all bytes that typically contain lane line information.
+  # For HDA2 (0x362/0x2a4), Bytes 0-1 are Checksum and Byte 2 is Counter.
+  # We preserve these and zero out Bytes 3+ to disable lane-following logic in ADAS ECU.
+  for i in range(3, msg_bytes):
+    values[f"BYTE{i}"] = 0
 
   # EV4: Send to ECAN (Bus 1) where ADAS ECU lives.
-  # Suppression tells ADAS ECU that no lines are detected, keeping it in standby.
   bus = CAN.ECAN if car_fingerprint == "KIA_EV4" else CAN.ACAN
   return packer.make_can_msg(suppress_msg, bus, values)
 
