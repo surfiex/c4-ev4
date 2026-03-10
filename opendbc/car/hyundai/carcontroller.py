@@ -92,7 +92,7 @@ class CarController(CarControllerBase):
       addr, bus = 0x7d0, self.CAN.ECAN if self.CP.flags & HyundaiFlags.CANFD else 0
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING.value:
         addr, bus = 0x730, self.CAN.ECAN
-      # EV4: Do not disable ADAS ECU, so do not send tester present
+      # EV4: Do not disable ADAS ECU. Doing so makes the vehicle extremely unhappy (HDA2).
       if self.car_fingerprint != CAR.KIA_EV4:
         can_sends.append(make_tester_present_msg(addr, bus, suppress_response=True))
 
@@ -188,7 +188,9 @@ class CarController(CarControllerBase):
 
     if self.CP.openpilotLongitudinalControl:
       if lka_steering:
-        if self.CP.carFingerprint != CAR.KIA_EV4:
+        if self.CP.carFingerprint == CAR.KIA_EV4:
+          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
+        else:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
       else:
         can_sends.extend(hyundaicanfd.create_fca_warning_light(self.packer, self.CAN, self.frame))
@@ -199,7 +201,9 @@ class CarController(CarControllerBase):
     else:
       # HDA2 needs ADRV heartbeats even for lateral-only
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
-        if self.CP.carFingerprint != CAR.KIA_EV4:
+        if self.CP.carFingerprint == CAR.KIA_EV4:
+          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
+        else:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
 
       # button presses
@@ -224,19 +228,16 @@ class CarController(CarControllerBase):
               can_sends.append(hyundaicanfd.create_buttons(self.packer, self.CP, self.CAN, CS.buttons_counter + 1, Buttons.RES_ACCEL))
             self.last_button_frame = self.frame
 
-    # HDA2 Forwarding: Forward saved messages between camera bus and car bus
+    # HDA2 Forwarding: Forward saved messages between camera bus and car buses
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs:
         if self.CP.carFingerprint == CAR.KIA_EV4:
-          # Forward to Bus 0 (ACAN) - Steering/ESC Bus
-          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
-
-          # Forward to Bus 1 (ECAN) - ADAS ECU/Cluster Bus
-          # Conflict check: ADRV_0x165 (ID 357) is 24 bytes on ECAN but 16 bytes on Camera bus.
-          if msg_name == "ADRV_0x165":
-            continue
-
-          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
+          # Targeted Forwarding: ADAS output messages go to ECAN, sensor inputs to ACAN
+          # ADRV_0x389 (905), ADRV_0x380 (896), ADRV_0x165 (357), CAM_0x362 (866) typically belong to Bus 1
+          if any(x in msg_name for x in ["0x389", "0x165", "0x380", "CAM_0x362", "ID865"]):
+            can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
+          else:
+            can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
         else:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 
