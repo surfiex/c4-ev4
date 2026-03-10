@@ -13,6 +13,9 @@ with open(dbc_path, 'r', encoding='latin-1') as f:
 # All IDs seen on Bus 2 (Camera Bus) and Bus 1 (ADAS Bus)
 # Mapping: msg_id -> (length, name)
 ids_to_expand = {
+  53: (32, "ACCELERATOR"),
+  64: (32, "GEAR_ALT"),
+  69: (24, "GEAR"),
   81: (16, "ADRV_0x51"),
   160: (24, "WHEEL_SPEEDS"),
   234: (32, "MDPS"),
@@ -111,6 +114,14 @@ extra_signals = {
 """,
   979: """ SG_ DOOR_OPEN_ANY : 0|1@1+ (1,0) [0|1] "" XXX
 """,
+  53: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+""",
+  304: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+""",
+  64: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+""",
+  69: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+""",
 }
 
 # Parse existing BO_ blocks into a unique dictionary to prevent duplicates
@@ -161,6 +172,7 @@ for msg_id, (length, name) in ids_to_expand.items():
     if msg_id == 864 and b in [0, 1, 2]: continue
     if msg_id == 976 and b in [0, 1, 2]: continue
     if msg_id == 979 and b in [0]: continue
+    if msg_id in [53, 304, 64, 69] and b == 1: continue
     msg_lines.append(f' SG_ BYTE{b} : {b * 8}|8@1+ (1,0) [0|255] "" XXX\n')
   
   messages[msg_id] = msg_lines
@@ -171,5 +183,10 @@ with open(dbc_path, 'w', encoding='latin-1') as f:
   for msg_id in sorted(messages.keys()):
     f.writelines(messages[msg_id])
     f.write('\n')
+  
+  # Add value tables (VAL_)
+  f.write('VAL_ 53 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;\n')
+  f.write('VAL_ 304 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;\n')
+  f.write('VAL_ 64 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;\n')
 
 print(f"DBC cleaned and expanded. Total unique messages: {len(messages)}")
