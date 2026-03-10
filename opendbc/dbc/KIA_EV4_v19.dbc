@@ -41,12 +41,12 @@ BU_: XXX CAMERA FRONT_RADAR ADRV APRK
 
 
 BO_ 53 ACCELERATOR: 32 XXX
- SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ ACCELERATOR_PEDAL : 40|8@1+ (1,0) [0|255] "" XXX
+ SG_ GEAR : 192|3@1+ (1,0) [0|7] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE7 : 56|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE8 : 64|8@1+ (1,0) [0|255] "" XXX
@@ -65,7 +65,6 @@ BO_ 53 ACCELERATOR: 32 XXX
  SG_ BYTE21 : 168|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE22 : 176|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE23 : 184|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE24 : 192|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE25 : 200|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE26 : 208|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE27 : 216|8@1+ (1,0) [0|255] "" XXX
@@ -75,11 +74,10 @@ BO_ 53 ACCELERATOR: 32 XXX
  SG_ BYTE31 : 248|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 64 GEAR_ALT: 32 XXX
- SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ GEAR : 32|3@1+ (1,0) [0|7] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE7 : 56|8@1+ (1,0) [0|255] "" XXX
@@ -109,8 +107,7 @@ BO_ 64 GEAR_ALT: 32 XXX
  SG_ BYTE31 : 248|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 69 GEAR: 24 XXX
- SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ GEAR : 8|3@1+ (1,0) [0|7] "" XXX
  SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
@@ -353,15 +350,14 @@ BO_ 298 LFA: 32 XXX
  SG_ BYTE31 : 248|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 304 GEAR_SHIFTER: 32 XXX
- SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ PARK_BUTTON : 32|2@1+ (1,0) [0|3] "" XXX
+ SG_ KNOB_POSITION : 40|3@1+ (1,0) [0|3] "" XXX
+ SG_ GEAR : 64|3@1+ (1,0) [0|7] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE7 : 56|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE8 : 64|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE9 : 72|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE10 : 80|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE11 : 88|8@1+ (1,0) [0|255] "" XXX
@@ -3008,6 +3004,7 @@ BO_ 1280 ID1280: 16 XXX
  SG_ BYTE14 : 112|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
 
-VAL_ 53 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;
-VAL_ 304 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;
-VAL_ 64 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;
+VAL_ 53 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;
+VAL_ 304 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;
+VAL_ 64 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;
+VAL_ 69 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;

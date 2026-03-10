@@ -115,13 +115,22 @@ extra_signals = {
 """,
   979: """ SG_ DOOR_OPEN_ANY : 0|1@1+ (1,0) [0|1] "" XXX
 """,
-  53: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+  53: """ SG_ ACCELERATOR_PEDAL : 40|8@1+ (1,0) [0|255] "" XXX
+ SG_ GEAR : 192|3@1+ (1,0) [0|7] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
 """,
-  304: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+  304: """ SG_ PARK_BUTTON : 32|2@1+ (1,0) [0|3] "" XXX
+ SG_ KNOB_POSITION : 40|3@1+ (1,0) [0|3] "" XXX
+ SG_ GEAR : 64|3@1+ (1,0) [0|7] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
 """,
-  64: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+  64: """ SG_ GEAR : 32|3@1+ (1,0) [0|7] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
 """,
-  69: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
+  69: """ SG_ GEAR : 8|3@1+ (1,0) [0|7] "" XXX
 """,
   426: """ SG_ DISTANCE_UNIT : 30|1@1+ (1,0) [0|1] "" XXX
  SG_ CRUISE_BUTTONS : 36|3@1+ (1,0) [0|4] "" XXX
@@ -179,7 +188,10 @@ for msg_id, (length, name) in ids_to_expand.items():
     if msg_id == 864 and b in [0, 1, 2]: continue
     if msg_id == 976 and b in [0, 1, 2]: continue
     if msg_id == 979 and b in [0]: continue
-    if msg_id in [53, 304, 64, 69] and b == 1: continue
+    if msg_id == 53 and b in [0, 1, 2, 5, 24]: continue
+    if msg_id == 304 and b in [0, 1, 2, 4, 5, 8]: continue
+    if msg_id == 64 and b in [0, 1, 2, 4]: continue
+    if msg_id == 69 and b in [0, 1]: continue
     if msg_id == 426 and b in [0, 1, 2, 3, 4, 5]: continue
     msg_lines.append(f' SG_ BYTE{b} : {b * 8}|8@1+ (1,0) [0|255] "" XXX\n')
   
@@ -193,8 +205,10 @@ with open(dbc_path, 'w', encoding='latin-1') as f:
     f.write('\n')
   
   # Add value tables (VAL_)
-  f.write('VAL_ 53 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;\n')
-  f.write('VAL_ 304 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;\n')
-  f.write('VAL_ 64 GEAR 0 "P" 7 "R" 6 "N" 5 "D" ;\n')
+  # Gear mappings: 1:P, 2:R, 3:N, 4:D
+  f.write('VAL_ 53 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;\n')
+  f.write('VAL_ 304 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;\n')
+  f.write('VAL_ 64 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;\n')
+  f.write('VAL_ 69 GEAR 1 "P" 2 "R" 3 "N" 4 "D" ;\n')
 
 print(f"DBC cleaned and expanded. Total unique messages: {len(messages)}")
