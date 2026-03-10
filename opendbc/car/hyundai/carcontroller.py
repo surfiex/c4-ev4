@@ -188,7 +188,9 @@ class CarController(CarControllerBase):
 
     if self.CP.openpilotLongitudinalControl:
       if lka_steering:
-        if self.CP.carFingerprint != CAR.KIA_EV4:
+        if self.CP.carFingerprint == CAR.KIA_EV4:
+          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
+        else:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
       else:
         can_sends.extend(hyundaicanfd.create_fca_warning_light(self.packer, self.CAN, self.frame))
@@ -199,7 +201,9 @@ class CarController(CarControllerBase):
     else:
       # HDA2 needs ADRV heartbeats even for lateral-only
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
-        if self.CP.carFingerprint != CAR.KIA_EV4:
+        if self.CP.carFingerprint == CAR.KIA_EV4:
+          can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
+        else:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
 
       # button presses
@@ -228,9 +232,15 @@ class CarController(CarControllerBase):
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs:
         if self.CP.carFingerprint == CAR.KIA_EV4:
-          # BLOCK LFA sensors (362, 2a4, etc.) from reaching ECAN/ACAN.
-          # We replace these with a suppressed version to keep the ADAS ECU in standby.
-          if any(x in msg_name for x in ["CAM_0x362", "CAM_0x2a4", "CAM_0x363", "CAM_0x364"]):
+          # BLOCK LIST for EV4 MITM replacement
+          # We block these when OP sends its own version or when suppressing.
+          block_list = ["CAM_0x362", "CAM_0x2a4", "CAM_0x363", "CAM_0x364"]
+          if self.CP.openpilotLongitudinalControl:
+            block_list.extend(["LFA", "SCC_CONTROL", "LFAHDA_CLUSTER"])
+          elif CC.cruiseControl.cancel:
+            block_list.append("SCC_CONTROL")
+          
+          if any(x in msg_name for x in block_list):
             continue
 
           # KIA_EV4: Restrict camera forwarding to ECAN (Bus 1) only.
