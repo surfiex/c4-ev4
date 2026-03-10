@@ -28,6 +28,7 @@ ids_to_expand = {
   357: (16, "ADRV_0x165"),
   373: (16, "TCS"),
   416: (32, "SCC_CONTROL"),
+  426: (16, "CRUISE_BUTTONS_ALT"),
   437: (32, "CAMERA_0x1b5"),
   442: (24, "BLINDSPOTS_REAR_CORNERS"),
   474: (16, "ADRV_0x1da"),
@@ -122,6 +123,12 @@ extra_signals = {
 """,
   69: """ SG_ GEAR : 8|4@1+ (1,0) [0|15] "" XXX
 """,
+  426: """ SG_ DISTANCE_UNIT : 30|1@1+ (1,0) [0|1] "" XXX
+ SG_ CRUISE_BUTTONS : 36|3@1+ (1,0) [0|4] "" XXX
+ SG_ LDA_BTN : 39|1@1+ (1,0) [0|1] "" XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+""",
 }
 
 # Parse existing BO_ blocks into a unique dictionary to prevent duplicates
@@ -173,6 +180,7 @@ for msg_id, (length, name) in ids_to_expand.items():
     if msg_id == 976 and b in [0, 1, 2]: continue
     if msg_id == 979 and b in [0]: continue
     if msg_id in [53, 304, 64, 69] and b == 1: continue
+    if msg_id == 426 and b in [0, 1, 2, 3, 4, 5]: continue
     msg_lines.append(f' SG_ BYTE{b} : {b * 8}|8@1+ (1,0) [0|255] "" XXX\n')
   
   messages[msg_id] = msg_lines
