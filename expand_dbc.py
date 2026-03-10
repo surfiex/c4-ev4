@@ -92,8 +92,8 @@ extra_signals = {
   416: """ SG_ ACCMode : 68|3@1+ (1,0) [0|7] "" XXX
  SG_ CRUISE_STANDSTILL : 76|1@1+ (1,0) [0|1] "" XXX
  SG_ VSetDis : 103|8@0+ (1,0) [0|255] "" XXX
- SG_ aReqValue : 128|11@1+ (0.01,-10.23) [-10.23|10.24] "" XXX
- SG_ aReqRaw : 140|11@1+ (0.01,-10.23) [-10.23|10.24] "" XXX
+ SG_ aReqValue : 128|11@1+ (0.01,-10.23) [-10.23|10.24] "m/s^2" XXX
+ SG_ aReqRaw : 140|11@1+ (0.01,-10.23) [-10.23|10.24] "m/s^2" XXX
  SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
  SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
 """,
