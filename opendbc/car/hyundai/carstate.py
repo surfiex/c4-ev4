@@ -332,7 +332,6 @@ class CarState(CarStateBase):
     self.car_to_cam_forward_msgs = []
 
     # Include all ADRV/HDA2 IDs found on Bus 2 (Camera Bus) that need to be forwarded to Bus 0 and Bus 1
-    # PRUNED: Removed ADAS outputs (256, 298, 352, 357, 416, 480, 512, 837, 896, 905) to avoid Bus 1 conflicts
     forward_ids = [81, 282, 437, 474, 490, 506, 698, 752, 864, 865, 866, 867, 868, 917, 928, 976, 977, 978, 979, 980, 1041, 1280] + \
                   list(range(560, 585)) + list(range(933, 965))
     for addr in forward_ids:
@@ -354,7 +353,8 @@ class CarState(CarStateBase):
       elif addr == 698: msg_name = "IFS_0x2ba"
       elif addr == 752: msg_name = "ID752"
       elif addr == 837: msg_name = "ADRV_0x345"
-      elif addr == 864: msg_name = "LFA" # LFA signal is LFA_BUTTON
+      elif addr == 864: msg_name = "LFA_BUTTON"
+      elif addr == 865: msg_name = "ID865"
       elif addr == 866: msg_name = "CAM_0x362"
       elif addr == 867: msg_name = "CAM_0x363"
       elif addr == 868: msg_name = "CAM_0x364"
@@ -487,7 +487,8 @@ class CarState(CarStateBase):
         cam_msgs.append((msg_name, float('nan')))
 
     if CP.carFingerprint == CAR.KIA_EV4:
-      pass
+      cam_msgs.append(("LFA_BUTTON", float('nan')))
+      cam_msgs.append(("ID865", float('nan')))
     for addr in range(933, 965):
       cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))
 

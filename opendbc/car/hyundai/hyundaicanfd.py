@@ -96,9 +96,9 @@ def create_suppress_lfa(packer, CAN, lfa_block_msg, lka_steering_alt, car_finger
   suppress_msg = "CAM_0x362" if lka_steering_alt else "CAM_0x2a4"
   msg_bytes = 32 if lka_steering_alt else 24
 
-  values = {f"BYTE{i}": lfa_block_msg[f"BYTE{i}"] for i in range(3, msg_bytes) if i != 7}
-  values["COUNTER"] = lfa_block_msg["COUNTER"]
-  values["CHECKSUM"] = lfa_block_msg["CHECKSUM"]
+  values = {f"BYTE{i}": lfa_block_msg.get(f"BYTE{i}", 0) for i in range(3, msg_bytes) if i != 7}
+  values["COUNTER"] = lfa_block_msg.get("COUNTER", lfa_block_msg.get("BYTE2", 0))
+  values["CHECKSUM"] = lfa_block_msg.get("CHECKSUM", lfa_block_msg.get("BYTE0", 0))
   values["SET_ME_0"] = 0
   values["SET_ME_0_2"] = 0
   values["LEFT_LANE_LINE"] = 0
