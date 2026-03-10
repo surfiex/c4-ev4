@@ -178,9 +178,10 @@ class CarController(CarControllerBase):
                                                         self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT))
 
     # LFA and HDA icons
-    # EV4: ADAS ECU sends LFAHDA_CLUSTER itself when active; skip to avoid conflict
-    if self.frame % 5 == 0 and (not lka_steering or lka_steering_long):
-      can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CAN, CC.enabled, self.frame))
+    # EV4: Always send to maintain ADRV emulation
+    if self.frame % 5 == 0:
+      if self.CP.carFingerprint == CAR.KIA_EV4 or (not lka_steering or lka_steering_long):
+        can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CAN, CC.enabled, self.frame))
 
     # blinkers
     if lka_steering and self.CP.flags & HyundaiFlags.ENABLE_BLINKERS:
@@ -203,6 +204,9 @@ class CarController(CarControllerBase):
       if self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT:
         if self.CP.carFingerprint == CAR.KIA_EV4:
           can_sends.extend(hyundaicanfd.create_adrv_messages_ev4(self.packer, self.CAN, self.frame))
+          # Neutral SCC_CONTROL heartbeat for EV4 when longitudinal is disabled
+          if self.frame % 2 == 0:
+            can_sends.append(hyundaicanfd.create_acc_cancel(self.packer, self.CP, self.CAN, CS.cruise_info))
         else:
           can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.CAN, self.frame))
 
@@ -233,12 +237,8 @@ class CarController(CarControllerBase):
       for msg_name, msg_values in CS.hda2_forward_msgs:
         if self.CP.carFingerprint == CAR.KIA_EV4:
           # BLOCK LIST for EV4 MITM replacement
-          # We block these when OP sends its own version or when suppressing.
-          block_list = ["CAM_0x362", "CAM_0x2a4", "CAM_0x363", "CAM_0x364"]
-          if self.CP.openpilotLongitudinalControl:
-            block_list.extend(["LFA", "SCC_CONTROL", "LFAHDA_CLUSTER"])
-          elif CC.cruiseControl.cancel:
-            block_list.append("SCC_CONTROL")
+          # We ALWAYS block these because Openpilot consistently sends its own heartbeats/overrides for them.
+          block_list = ["CAM_0x362", "CAM_0x2a4", "CAM_0x363", "CAM_0x364", "LFA", "SCC_CONTROL", "LFAHDA_CLUSTER"]
           
           if any(x in msg_name for x in block_list):
             continue

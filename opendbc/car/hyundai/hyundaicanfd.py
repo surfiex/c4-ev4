@@ -83,8 +83,8 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
     else:
       ret.append(packer.make_can_msg(lkas_msg, CAN.ACAN, lkas_values))
 
-    # Send LFA only for longitudinal cars
-    if CP.openpilotLongitudinalControl:
+    # Send LFA for longitudinal cars OR if it's an EV4 needing heartbeats
+    if CP.openpilotLongitudinalControl or CP.carFingerprint == "KIA_EV4":
       if CP.carFingerprint == "KIA_EV4":
         _, dat_raw, _ = packer.make_can_msg("LFA", CAN.ECAN, lkas_values)
         dat = bytearray(dat_raw)

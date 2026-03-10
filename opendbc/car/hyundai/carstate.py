@@ -334,20 +334,16 @@ class CarState(CarStateBase):
 
     # Include all ADRV/HDA2 IDs found on Bus 2 (Camera Bus) that need to be forwarded to Bus 1 (ECAN)
     # PRUNED: Removed ONLY IDs spoofed in hyundaicanfd.py:create_adrv_messages_ev4 (81, 352, 474, 490, 512, 811, 813, 816, 837)
-    forward_ids = [282, 298, 357, 416, 437, 480, 506, 698, 752, 866, 867, 868, 896, 905, 917, 928] + \
+    forward_ids = [282, 357, 437, 506, 698, 752, 867, 868, 896, 905, 917, 928] + \
                   list(range(560, 585)) + list(range(933, 965))
     for addr in forward_ids:
       msg_name = None
       if addr == 282: msg_name = "FR_CMR_01_10ms"
-      elif addr == 298: msg_name = "LFA"
       elif addr == 357: msg_name = "ADRV_0x165"
-      elif addr == 416: msg_name = "SCC_CONTROL"
       elif addr == 437: msg_name = "CAMERA_0x1b5"
-      elif addr == 480: msg_name = "LFAHDA_CLUSTER"
       elif addr == 506: msg_name = "ISLA"
       elif addr == 698: msg_name = "IFS_0x2ba"
       elif addr == 752: msg_name = "ID752"
-      elif addr == 866: msg_name = "CAM_0x362"
       elif addr == 867: msg_name = "CAM_0x363"
       elif addr == 868: msg_name = "CAM_0x364"
       elif addr == 896: msg_name = "ADRV_0x380"
@@ -366,7 +362,7 @@ class CarState(CarStateBase):
             self.hda2_forward_msgs.append((msg_name, {s: vl_all_msg[s][i] for s in sigs}))
 
     # Car -> Camera Bus
-    car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426, 1041]
+    car_to_cam_ids = [53, 160, 234, 293, 304, 373, 426, 864, 1041]
     for addr in car_to_cam_ids:
       msg_name = None
       if addr == 53: msg_name = "ACCELERATOR"
@@ -376,6 +372,7 @@ class CarState(CarStateBase):
       elif addr == 304: msg_name = "GEAR_SHIFTER"
       elif addr == 373: msg_name = "TCS"
       elif addr == 426: msg_name = "CRUISE_BUTTONS_ALT"
+      elif addr == 864: msg_name = "LFA_BUTTON"
       elif addr == 1041: msg_name = "DOORS_SEATBELTS"
 
       # DOORS_SEATBELTS is on ACAN (Bus 0), others on ECAN (Bus 1)
