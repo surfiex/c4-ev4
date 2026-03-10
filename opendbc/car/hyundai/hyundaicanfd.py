@@ -37,82 +37,62 @@ class CanBus(CanBusBase):
 
 
 def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque, lkas_alt_msg=None):
-  common_values = {
-    "LKA_MODE": 2 if lat_active else (lkas_alt_msg["LKA_MODE"] if lkas_alt_msg else 0),
-    "LKA_ICON": 2 if enabled else (lkas_alt_msg["LKA_ICON"] if lkas_alt_msg else 1),
-    "TORQUE_REQUEST": apply_torque,
-    "LKA_ASSIST": 0,
-    "STEER_REQ": 1 if lat_active else 0,
-    "STEER_MODE": 0,
-    "HAS_LANE_SAFETY": 0,  # hide LKAS settings
-    "NEW_SIGNAL_2": 0,
-    "DAMP_FACTOR": 100,  # can potentially tuned for better perf [3, 200]
-  }
-
-  lkas_values = {}
-  # True MITM: Start with all original bytes from camera message
+  # 1. Initialize values from the original camera message if available
   if lkas_alt_msg:
-    for i in range(32):
-      msg_key = f"BYTE{i}"
-      if msg_key in lkas_alt_msg:
-        lkas_values[msg_key] = lkas_alt_msg[msg_key]
+    lkas_values = {f"BYTE{i}": lkas_alt_msg[f"BYTE{i}"] for i in range(32)}
+  else:
+    lkas_values = {f"BYTE{i}": 0 for i in range(32)}
 
-  # Now apply Openpilot overrides on top of the original bytes
+  # 2. Update specific signals for Openpilot's lateral control
   lkas_values.update({
-    "LKA_MODE": 2 if lat_active else (lkas_alt_msg["LKA_MODE"] if lkas_alt_msg else 0),
-    "LKA_ICON": 2 if enabled else (lkas_alt_msg["LKA_ICON"] if lkas_alt_msg else 1),
+    "LKA_MODE": 2 if lat_active else lkas_values.get("LKA_MODE", 0),
+    "LKA_ICON": 4 if enabled else lkas_values.get("LKA_ICON", 1), # EV4/HDA2 icon enums may vary; 4 is often Green
     "TORQUE_REQUEST": apply_torque,
-    "LKA_ASSIST": 0,
+    "LKA_ASSIST": lkas_values.get("LKA_ASSIST", 0),
     "STEER_REQ": 1 if lat_active else 0,
-    "STEER_MODE": 0,
-    "HAS_LANE_SAFETY": 0,
-    "LKA_AVAILABLE": lkas_alt_msg["LKA_AVAILABLE"] if lkas_alt_msg else 3,
+    "STEER_MODE": lkas_values.get("STEER_MODE", 0),
+    "HAS_LANE_SAFETY": 0,  # hide LKAS settings
+    "LKA_AVAILABLE": lkas_values.get("LKA_AVAILABLE", 3),
   })
 
-  lfa_values = {
-    "LKA_MODE": 2 if lat_active else (lkas_alt_msg["LKA_MODE"] if lkas_alt_msg else 0),
-    "LKA_ICON": 2 if enabled else (lkas_alt_msg["LKA_ICON"] if lkas_alt_msg else 1),
-    "TORQUE_REQUEST": apply_torque,
-    "LKA_ASSIST": 0,
-    "STEER_REQ": 1 if lat_active else 0,
-    "STEER_MODE": 0,
-    "HAS_LANE_SAFETY": 0,
-    "NEW_SIGNAL_1": 0,
-  }
   ret = []
   if CP.flags & HyundaiFlags.CANFD_LKA_STEERING:
     lkas_msg = "LKAS_ALT" if CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT else "LKAS"
 
-    # Send LFA on ECAN only when openpilot has longitudinal control.
-    if CP.openpilotLongitudinalControl:
-      ret.append(packer.make_can_msg("LFA", CAN.ECAN, lfa_values))
-
-    # EV4 Special: Manually pack LKAS_ALT to ensure CRC and Counter integrity for MITM
     if CP.carFingerprint == "KIA_EV4" and lkas_msg == "LKAS_ALT":
-      # 1. Start with the packer's best effort based on the expanded DBC
-      # make_can_msg returns (addr, data, bus)
+      # EV4 Special: Manually pack to ensure CRC and Counter integrity for dual-bus MITM
+
+      # A) Modified OP message to ACAN (Bus 0) - This is what the MDPS sees
       _, dat_raw, _ = packer.make_can_msg(lkas_msg, 0, lkas_values)
       dat = bytearray(dat_raw)
-
-      # 2. Recalculate CRC (Bytes 0-1)
-      # hkg_can_fd_checksum expects bytes 2-31 and address
       crc = hkg_can_fd_checksum(0x110, None, dat)
       dat[0] = crc & 0xFF
       dat[1] = (crc >> 8) & 0xFF
-
-      # 3. Queue for ACAN (Bus 0)
       ret.append([0x110, bytes(dat), CAN.ACAN])
-      # 4. Queue for ECAN (Bus 1) to satisfy ADAS ECU
-      # ret.append([0x110, bytes(dat), CAN.ECAN])  # EV4: Skip sending to ECAN to avoid conflict with ADAS ECU
+
+      # B) Original CAMERA message to ECAN (Bus 1) - This keeps the ADAS ECU happy but Inactive
+      # Crucial for HDA2: ADAS ECU must see the camera signal but stay out of our way.
+      if lkas_alt_msg:
+        orig_values = {f"BYTE{i}": lkas_alt_msg[f"BYTE{i}"] for i in range(32)}
+        _, dat_orig, _ = packer.make_can_msg(lkas_msg, 0, orig_values)
+        dat_o = bytearray(dat_orig)
+        crc_o = hkg_can_fd_checksum(0x110, None, dat_o)
+        dat_o[0] = crc_o & 0xFF
+        dat_o[1] = (crc_o >> 8) & 0xFF
+        ret.append([0x110, bytes(dat_o), CAN.ECAN])
     else:
       ret.append(packer.make_can_msg(lkas_msg, CAN.ACAN, lkas_values))
+
+    # Send LFA only for longitudinal cars
+    if CP.openpilotLongitudinalControl:
+      ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
+
   else:
-    ret.append(packer.make_can_msg("LFA", CAN.ECAN, lfa_values))
+    ret.append(packer.make_can_msg("LFA", CAN.ECAN, lkas_values))
 
   return ret
 
-
-def create_suppress_lfa(packer, CAN, lfa_block_msg, lka_steering_alt):
+def create_suppress_lfa(packer, CAN, lfa_block_msg, lka_steering_alt, car_fingerprint):
   suppress_msg = "CAM_0x362" if lka_steering_alt else "CAM_0x2a4"
   msg_bytes = 32 if lka_steering_alt else 24
 
@@ -123,7 +103,11 @@ def create_suppress_lfa(packer, CAN, lfa_block_msg, lka_steering_alt):
   values["SET_ME_0_2"] = 0
   values["LEFT_LANE_LINE"] = 0
   values["RIGHT_LANE_LINE"] = 0
-  return packer.make_can_msg(suppress_msg, CAN.ACAN, values)
+
+  # EV4: Send to ECAN (Bus 1) where ADAS ECU lives.
+  # Suppression tells ADAS ECU that no lines are detected, keeping it in standby.
+  bus = CAN.ECAN if car_fingerprint == "KIA_EV4" else CAN.ACAN
+  return packer.make_can_msg(suppress_msg, bus, values)
 
 
 def create_buttons(packer, CP, CAN, cnt, btn):

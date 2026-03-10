@@ -228,17 +228,24 @@ class CarController(CarControllerBase):
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs:
         if self.CP.carFingerprint == CAR.KIA_EV4:
-          # Broad Forwarding: Ensure sensor data and heartbeats reach all vehicle buses.
-          # We only block LKAS_ALT (0x110) in CarState to avoid command collisions.
+          # BLOCK LFA sensors (362, 2a4, etc.) from reaching ECAN/ACAN.
+          # We replace these with a suppressed version to keep the ADAS ECU in standby.
+          if any(x in msg_name for x in ["CAM_0x362", "CAM_0x2a4", "CAM_0x363", "CAM_0x364"]):
+            continue
+
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
         else:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 
+      # Send LFA suppression to ADAS ECU (on ECAN)
+      if self.CP.carFingerprint == CAR.KIA_EV4 and self.frame % 5 == 0:
+        can_sends.append(hyundaicanfd.create_suppress_lfa(self.packer, self.CAN, CS.lfa_block_msg,
+                                                          self.CP.flags & HyundaiFlags.CANFD_LKA_STEERING_ALT,
+                                                          self.CP.carFingerprint))
+
       if self.CP.carFingerprint == CAR.KIA_EV4:
         for msg_name, msg_values in CS.car_to_cam_forward_msgs:
-          # Forward messages from car bus (1) to camera bus (2)
-          # This allows the ADAS ECU to see buttons, pedals, gear, etc.
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.CAM, msg_values))
 
     return can_sends
