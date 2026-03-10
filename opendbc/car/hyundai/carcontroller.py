@@ -233,8 +233,9 @@ class CarController(CarControllerBase):
           if any(x in msg_name for x in ["CAM_0x362", "CAM_0x2a4", "CAM_0x363", "CAM_0x364"]):
             continue
 
+          # KIA_EV4: Restrict camera forwarding to ECAN (Bus 1) only.
+          # ACAN (Bus 0) is extremely sensitive to ADAS traffic and will fault if redundant data is found.
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
-          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
         else:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 

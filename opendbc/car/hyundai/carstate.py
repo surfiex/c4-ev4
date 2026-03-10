@@ -331,35 +331,20 @@ class CarState(CarStateBase):
     self.hda2_forward_msgs = []
     self.car_to_cam_forward_msgs = []
 
-    # Include all ADRV/HDA2 IDs found on Bus 2 (Camera Bus) that need to be forwarded to Bus 0 and Bus 1
-    forward_ids = [81, 282, 437, 474, 490, 506, 698, 752, 864, 865, 866, 867, 868, 917, 928, 976, 977, 978, 979, 980, 1041, 1280] + \
+    # Include all ADRV/HDA2 IDs found on Bus 2 (Camera Bus) that need to be forwarded to Bus 1 (ECAN)
+    # PRUNED: Removed spoofed IDs (81, 352, 474, 490, 512, 837) to avoid collisions with create_adrv_messages_ev4
+    # PRUNED: Removed collision-prone IDs (256, 298, 357, 416, 480, 506, 698, 752, 896, 905)
+    forward_ids = [282, 437, 864, 865, 866, 867, 868, 917, 928, 976, 977, 978, 979, 980, 1041, 1280] + \
                   list(range(560, 585)) + list(range(933, 965))
     for addr in forward_ids:
       msg_name = None
-      if addr == 81: msg_name = "ADRV_0x51"
-      elif addr == 256: msg_name = "ACCELERATOR_BRAKE_ALT"
-      elif addr == 272: continue  # LKAS_ALT is handled manually in CarController
-      elif addr == 282: msg_name = "FR_CMR_01_10ms"
-      elif addr == 298: msg_name = "LFA"
-      elif addr == 352: msg_name = "ADRV_0x160"
-      elif addr == 357: msg_name = "ADRV_0x165"
-      elif addr == 416: msg_name = "SCC_CONTROL"
+      if addr == 282: msg_name = "FR_CMR_01_10ms"
       elif addr == 437: msg_name = "CAMERA_0x1b5"
-      elif addr == 474: msg_name = "ADRV_0x1da"
-      elif addr == 480: msg_name = "LFAHDA_CLUSTER"
-      elif addr == 490: msg_name = "ADRV_0x1ea"
-      elif addr == 506: msg_name = "ISLA"
-      elif addr == 512: msg_name = "ADRV_0x200"
-      elif addr == 698: msg_name = "IFS_0x2ba"
-      elif addr == 752: msg_name = "ID752"
-      elif addr == 837: msg_name = "ADRV_0x345"
       elif addr == 864: msg_name = "LFA_BUTTON"
       elif addr == 865: msg_name = "ID865"
       elif addr == 866: msg_name = "CAM_0x362"
       elif addr == 867: msg_name = "CAM_0x363"
       elif addr == 868: msg_name = "CAM_0x364"
-      elif addr == 896: msg_name = "ADRV_0x380"
-      elif addr == 905: msg_name = "ADRV_0x389"
       elif addr == 917: msg_name = "ID917"
       elif addr == 928: msg_name = "ID928"
       elif addr == 1041: msg_name = "DOORS_SEATBELTS"
