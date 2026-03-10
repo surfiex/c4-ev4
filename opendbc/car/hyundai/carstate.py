@@ -277,9 +277,9 @@ class CarState(CarStateBase):
     # cruise state
     # CAN FD cars enable on main button press, set available if no TCS faults preventing engagement
     if self.CP.carFingerprint == CAR.KIA_EV4:
-      ret.cruiseState.available = cp.vl["TCS"]["ACCEnable"] in (0, 2)
+      ret.cruiseState.available = cp.vl["TCS"].get("ACCEnable", 0) in (0, 2)
     else:
-      ret.cruiseState.available = cp.vl["TCS"]["ACCEnable"] == 0
+      ret.cruiseState.available = cp.vl["TCS"].get("ACCEnable", 0) == 0
     
     if self.CP.openpilotLongitudinalControl:
       # These are not used for engage/disengage since openpilot keeps track of state using the buttons
@@ -287,10 +287,11 @@ class CarState(CarStateBase):
       ret.cruiseState.standstill = False
     else:
       cp_cruise_info = cp_cam if self.CP.flags & HyundaiFlags.CANFD_CAMERA_SCC else cp
-      ret.cruiseState.enabled = cp_cruise_info.vl["SCC_CONTROL"]["ACCMode"] in (1, 2)
-      ret.cruiseState.standstill = cp_cruise_info.vl["SCC_CONTROL"]["CRUISE_STANDSTILL"] == 1
-      ret.cruiseState.speed = cp_cruise_info.vl["SCC_CONTROL"]["VSetDis"] * speed_factor
-      self.cruise_info = copy.copy(cp_cruise_info.vl["SCC_CONTROL"])
+      scc_control = cp_cruise_info.vl["SCC_CONTROL"]
+      ret.cruiseState.enabled = scc_control.get("ACCMode", 0) in (1, 2)
+      ret.cruiseState.standstill = scc_control.get("CRUISE_STANDSTILL", 0) == 1
+      ret.cruiseState.speed = scc_control.get("VSetDis", 0) * speed_factor
+      self.cruise_info = copy.copy(scc_control)
 
     # Manual Speed Limit Assist is a feature that replaces non-adaptive cruise control on EV CAN FD platforms.
     # It limits the vehicle speed, overridable by pressing the accelerator past a certain point.

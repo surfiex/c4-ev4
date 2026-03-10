@@ -73,6 +73,10 @@ lkas_alt_signals = """ SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
 
 # BODY and BUTTON signals to restore
 extra_signals = {
+  416: """ SG_ ACCMode : 68|3@1+ (1,0) [0|7] "" XXX
+ SG_ CRUISE_STANDSTILL : 120|1@1+ (1,0) [0|1] "" XXX
+ SG_ VSetDis : 129|8@1+ (1,0) [0|255] "" XXX
+""",
   864: """ SG_ LEFT_BLINKER : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ RIGHT_BLINKER : 8|8@1+ (1,0) [0|255] "" XXX
  SG_ LFA_BTN : 16|1@1+ (1,0) [0|1] "" XXX
@@ -118,7 +122,9 @@ for line in lines:
             if msg_id == 979 and i == 0:
               continue
             if msg_id == 864 and i in [0, 1, 2]:
-              continue  # Added 2 for LFA_BTN
+              continue
+            if msg_id == 416 and i in [8, 15, 16]:
+              continue
 
             new_lines.append(f' SG_ BYTE{i} : {i * 8}|8@1+ (1,0) [0|255] "" XXX\n')
           skip_signals = True
@@ -144,6 +150,8 @@ for msg_id, length in ids_to_expand.items():
       if msg_id == 979 and i == 0:
         continue
       if msg_id == 864 and i in [0, 1, 2]:
+        continue
+      if msg_id == 416 and i in [8, 15, 16]:
         continue
       new_lines.append(f' SG_ BYTE{i} : {i * 8}|8@1+ (1,0) [0|255] "" XXX\n')
 
