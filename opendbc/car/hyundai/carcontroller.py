@@ -228,13 +228,10 @@ class CarController(CarControllerBase):
     if lka_steering:
       for msg_name, msg_values in CS.hda2_forward_msgs:
         if self.CP.carFingerprint == CAR.KIA_EV4:
-          # Forward to Bus 1 (ECAN) ONLY - ADAS ECU/Cluster Bus
-          # Forwarding to Bus 0 (ACAN) causes collisions with the ADAS ECU's own outputs.
-          # Conflict check: ADRV_0x165 (ID 357) is 24 bytes on ECAN but 16 bytes on Camera bus.
-          if msg_name == "ADRV_0x165":
-            continue
-
+          # Broad Forwarding: Ensure sensor data and heartbeats reach all vehicle buses.
+          # We only block LKAS_ALT (0x110) in CarState to avoid command collisions.
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
+          can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ACAN, msg_values))
         else:
           can_sends.append(self.packer.make_can_msg(msg_name, self.CAN.ECAN, msg_values))
 

@@ -354,8 +354,7 @@ class CarState(CarStateBase):
       elif addr == 698: msg_name = "IFS_0x2ba"
       elif addr == 752: msg_name = "ID752"
       elif addr == 837: msg_name = "ADRV_0x345"
-      elif addr == 864: msg_name = "LFA_BUTTON"
-      elif addr == 865: msg_name = "ID865"
+      elif addr == 864: msg_name = "LFA" # LFA signal is LFA_BUTTON
       elif addr == 866: msg_name = "CAM_0x362"
       elif addr == 867: msg_name = "CAM_0x363"
       elif addr == 868: msg_name = "CAM_0x364"
@@ -474,7 +473,6 @@ class CarState(CarStateBase):
       ("CAMERA_0x1b5", float('nan')),
       ("IFS_0x2ba", float('nan')),
       ("ID752", float('nan')),
-      ("ID865", float('nan')),
       ("ID917", float('nan')),
       ("ID928", float('nan')),
       ("ID977", float('nan')),
@@ -489,7 +487,7 @@ class CarState(CarStateBase):
         cam_msgs.append((msg_name, float('nan')))
 
     if CP.carFingerprint == CAR.KIA_EV4:
-      cam_msgs.append(("LFA_BUTTON", float('nan')))
+      pass
     for addr in range(933, 965):
       cam_msgs.append((f"RADAR_TRACK_{addr}", float('nan')))
 
