@@ -13,10 +13,13 @@ with open(dbc_path, 'r', encoding='latin-1') as f:
 ids_to_expand = {
   256: 24,  # ACCELERATOR_BRAKE_ALT (0x100) - Fingerprint says 24
   272: 32,  # LKAS_ALT (0x110)
+  298: 32,  # LFA (0x12a)
   352: 16,  # ADRV_0x160 (0x160)
   357: 16,  # ADRV_0x165 - Fingerprint says 16
+  416: 32,  # SCC_CONTROL (0x1a0)
   437: 32,  # CAMERA_0x1b5 - Not on B2? But we'll keep as 32 if seen
   474: 16,  # ADRV_0x1da (0x1da)
+  480: 32,  # LFAHDA_CLUSTER (0x1e0)
   490: 32,  # ADRV_0x1ea (0x1ea)
   506: 32,  # ISLA
   512: 16,  # ADRV_0x200 (0x200)

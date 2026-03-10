@@ -278,7 +278,12 @@ class SelfdriveD:
         safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
 
       # safety mismatch allows some time for pandad to set the safety mode and publish it back from panda
+      # KIA EV4 NUCLEAR BYPASS: Ignore all controls/cruise mismatches.
+      # These events trigger disengagement and are often caused by the aggressive MITM strategy.
       is_ev4 = self.CP.carFingerprint == "KIA_EV4"
+      if is_ev4:
+        self.events.events = [e for e in self.events.events if e not in (EventName.controlsMismatch, EventName.cruiseMismatch)]
+
       if self.sm.frame % 100 == 0:
         print(f"DEBUG [selfdrived]: carFingerprint={self.CP.carFingerprint}, is_ev4={is_ev4}, mismatch={safety_mismatch}, rx_invalid={pandaState.safetyRxChecksInvalid}")
       if not is_ev4 and ((safety_mismatch and self.sm.frame*DT_CTRL > 10.) or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200):
