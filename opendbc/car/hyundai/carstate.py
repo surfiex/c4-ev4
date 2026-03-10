@@ -332,8 +332,7 @@ class CarState(CarStateBase):
     self.car_to_cam_forward_msgs = []
 
     # Include all ADRV/HDA2 IDs found on Bus 2 (Camera Bus) that need to be forwarded to Bus 0 and Bus 1
-    # PRUNED: Removed ADAS outputs (256, 298, 352, 357, 416, 480, 512, 837, 896, 905) to avoid Bus 1 conflicts
-    forward_ids = [81, 282, 437, 474, 490, 506, 698, 752, 864, 865, 866, 867, 868, 917, 928, 976, 977, 978, 979, 980, 1041, 1280] + \
+    forward_ids = [81, 256, 272, 282, 298, 352, 357, 416, 437, 474, 480, 490, 506, 512, 698, 752, 837, 864, 865, 866, 867, 868, 896, 905, 917, 928, 976, 977, 978, 979, 980, 1280] + \
                   list(range(560, 585)) + list(range(933, 965))
     for addr in forward_ids:
       msg_name = None
