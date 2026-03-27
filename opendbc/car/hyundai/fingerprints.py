@@ -10,7 +10,7 @@ Ecu = CarParams.Ecu
 
 FINGERPRINTS = {
   CAR.KIA_EV4: [{
-    0x1cf: 8, # CRUISE_BUTTONS_ALT
+    0x110: 32, # LKAS_ALT
   }],
 }
 
