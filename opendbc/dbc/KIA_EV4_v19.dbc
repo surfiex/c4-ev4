@@ -165,39 +165,17 @@ BO_ 160 WHEEL_SPEEDS: 24 XXX
  SG_ WHL_SpdRLVal : 96|14@1+ (0.03125,0) [0|0] "km^h" XXX
  SG_ WHL_SpdRRVal : 112|14@1+ (0.03125,0) [0|0] "km^h" XXX
 
-BO_ 234 MDPS: 32 XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE7 : 56|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE8 : 64|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE9 : 72|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE10 : 80|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE11 : 88|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE12 : 96|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE13 : 104|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE14 : 112|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE16 : 128|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE17 : 136|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE18 : 144|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE19 : 152|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE20 : 160|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE21 : 168|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE22 : 176|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE23 : 184|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE24 : 192|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE25 : 200|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE26 : 208|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE27 : 216|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE28 : 224|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE29 : 232|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE30 : 240|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE31 : 248|8@1+ (1,0) [0|255] "" XXX
+BO_ 234 MDPS: 24 XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ LKA_ACTIVE : 48|1@0+ (1,0) [0|16777215] "" XXX
+ SG_ LKA_FAULT : 54|1@0+ (1,0) [0|1] "" XXX
+ SG_ STEERING_OUT_TORQUE : 64|12@1+ (0.1,-204.8) [0|65535] "" XXX
+ SG_ STEERING_COL_TORQUE : 80|13@1+ (1,-4095) [0|4095] "" XXX
+ SG_ STEERING_ANGLE : 96|16@1- (0.1,0) [0|255] "deg" XXX
+ SG_ STEERING_ANGLE_2 : 128|16@1- (0.1,0) [0|65535] "deg" XXX
+ SG_ LKA_ANGLE_ACTIVE : 145|2@0+ (1,0) [0|3] "" XXX
+ SG_ LKA_ANGLE_FAULT : 149|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 256 ACCELERATOR_BRAKE_ALT: 24 XXX
  SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
@@ -264,39 +242,11 @@ BO_ 272 LKAS_ALT: 32 XXX
 
 BO_ 282 FR_CMR_01_10ms: 16 XXX
 
-BO_ 293 STEERING_SENSORS: 32 XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE7 : 56|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE8 : 64|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE9 : 72|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE10 : 80|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE11 : 88|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE12 : 96|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE13 : 104|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE14 : 112|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE16 : 128|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE17 : 136|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE18 : 144|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE19 : 152|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE20 : 160|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE21 : 168|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE22 : 176|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE23 : 184|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE24 : 192|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE25 : 200|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE26 : 208|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE27 : 216|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE28 : 224|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE29 : 232|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE30 : 240|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE31 : 248|8@1+ (1,0) [0|255] "" XXX
+BO_ 293 STEERING_SENSORS: 16 XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ STEERING_ANGLE : 24|16@1- (0.1,0) [0|255] "deg" XXX
+ SG_ STEERING_RATE : 40|8@1+ (4,0) [0|1016] "deg/s" XXX
 
 BO_ 298 LFA: 32 XXX
  SG_ LKA_MODE : 24|4@1+ (1,0) [0|15] "" XXX
@@ -404,23 +354,25 @@ BO_ 357 ADRV_0x165: 16 XXX
  SG_ BYTE14 : 112|8@1+ (1,0) [0|255] "" XXX
  SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
 
-BO_ 373 TCS: 16 XXX
- SG_ BYTE0 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE1 : 8|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE2 : 16|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE3 : 24|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE4 : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE5 : 40|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE6 : 48|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE7 : 56|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE8 : 64|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE9 : 72|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE10 : 80|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE11 : 88|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE12 : 96|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE13 : 104|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE14 : 112|8@1+ (1,0) [0|255] "" XXX
- SG_ BYTE15 : 120|8@1+ (1,0) [0|255] "" XXX
+BO_ 373 TCS: 24 XXX
+ SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX
+ SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX
+ SG_ NEW_SIGNAL_4 : 24|7@1+ (1,0) [0|127] "" XXX
+ SG_ aBasis : 32|11@1+ (0.01,-10.23) [0|7] "m/s^2" XXX
+ SG_ ACCEL_REF_ACC : 48|11@1- (1,0) [0|1023] "" XXX
+ SG_ EQUIP_MAYBE : 64|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACCEnable : 67|2@0+ (1,0) [0|3] "" XXX
+ SG_ ACC_REQ : 68|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_5 : 72|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_2 : 74|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_3 : 76|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_1 : 80|1@0+ (1,0) [0|1] "" XXX
+ SG_ DriverBraking : 81|1@0+ (1,0) [0|1] "" XXX
+ SG_ DriverBrakingLowSens : 84|1@1+ (1,0) [0|1] "" XXX
+ SG_ AEB_EQUIP_MAYBE : 96|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_6 : 128|4@1+ (1,0) [0|15] "" XXX
+ SG_ NEW_SIGNAL_7 : 135|2@0+ (1,0) [0|3] "" XXX
+ SG_ PROBABLY_EQUIP : 136|2@1+ (1,0) [0|3] "" XXX
 
 BO_ 416 SCC_CONTROL: 32 XXX
  SG_ ACCMode : 68|3@1+ (1,0) [0|7] "" XXX
