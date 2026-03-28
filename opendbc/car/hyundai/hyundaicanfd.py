@@ -39,7 +39,8 @@ class CanBus(CanBusBase):
 def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque, lkas_alt_msg=None):
   # 1. Initialize values from the original camera message if available
   if lkas_alt_msg:
-    lkas_values = {f"BYTE{i}": lkas_alt_msg[f"BYTE{i}"] for i in range(32)}
+    # Copy all keys from the captured message (supports both named signals and BYTEn format)
+    lkas_values = dict(lkas_alt_msg)
   else:
     lkas_values = {f"BYTE{i}": 0 for i in range(32)}
 
@@ -73,7 +74,7 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_torque,
       # B) Original CAMERA message to ECAN (Bus 1) - This keeps the ADAS ECU happy but Inactive
       # Crucial for HDA2: ADAS ECU must see the camera signal but stay out of our way.
       if lkas_alt_msg:
-        orig_values = {f"BYTE{i}": lkas_alt_msg[f"BYTE{i}"] for i in range(32)}
+        orig_values = dict(lkas_alt_msg)
         _, dat_orig, _ = packer.make_can_msg(lkas_msg, 0, orig_values)
         dat_o = bytearray(dat_orig)
         crc_o = hkg_can_fd_checksum(0x110, None, dat_o)
